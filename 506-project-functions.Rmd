@@ -191,11 +191,19 @@ population_func <- function(year, state){
      data$variable == "B02001_001" ~ "Total population",
      data$variable == "B03002_001" ~ "Total hispanic latino"
    )
+   data$year <- rep(year, nrow(data))
+   ### Extract county and state from the NAME variable here
+   
    return(data)
    
 }
 ```
 
 ```{r}
-head(population_func(2009, "MI"), n = 15)
+test <- population_func(2009, "MI")
 ```
+```{r}
+### Find percentages of each demographic group HERE
+
+```
+

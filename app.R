@@ -20,16 +20,6 @@ ui <- fluidPage(theme = shinytheme("lumen"),
     # Sidebar with a slider input for number of bins 
     sidebarLayout(
         sidebarPanel(
-            # sliderInput("bins",
-            #             "Number of bins:",
-            #             min = 1,
-            #             max = 50,
-            #             value = 30),
-            # sliderInput("bins",
-            #             "Number of bins:",
-            #             min = 1,
-            #             max = 50,
-            #             value = 30),
             ### User can specify one race
             ### There's a way to specify more than one race, but I don't know if we want to do that?
             selectInput("race", "Demographic Group",
@@ -40,36 +30,65 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                         choices = c("pm25", "CO2", "Ozone", "Other Pollutants Here..."),
                         multiple = FALSE),
             selectInput("state", "State",
-                        choices = c("California", "Oregon", "Washington", "Nevada"),
-                        multiple = TRUE)
+                        choices = c("MI", "OH", "IN", "IL"),
+                        ### May want to include a select multiple option later
+                        multiple = FALSE),
+            selectInput("year", "Year",
+                        choices = c("2005", "2006", "2007", "2008", "2009", "2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020"),
+                        ### May want to include a select multiple option later
+                        multiple = FALSE),
+            textInput("stateTextInput", h3("State"),
+                      value = "")
             
         ),
 
         # Show a plot of the generated distribution
-        # mainPanel(
-        #           fluidRow(
-        #             splitLayout(cellWidths = c("50%", "50%"), plotOutput("plotgraph1"), plotOutput("plotgraph2"))
-        #           )
-        # )
         mainPanel(
-          plotOutput("distPlot1")
+                  fluidRow(
+                    splitLayout(cellWidths = c("50%", "50%"), plotOutput("distPlot1"), plotOutput("distPlot2"))
+                  )
         )
     )
 )
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-
-    output$distPlot1 <- renderPlot({
-        # generate bins based on input$bins from ui.R
-        x    <- faithful[, 2]
-        bins <- seq(min(x), max(x), length.out = 10 + 1)
-
-        # draw the histogram with the specified number of bins
-        hist(x, breaks = 10, col = 'darkgray', border = 'white',
-             xlab = paste('Waiting time to next eruption (in mins)'),
-             main = 'Histogram of waiting times')
+    year_input <- reactive({
+      as.numeric(input$year)
     })
+    state_input <- reactive({
+      input$state
+    })
+    race_input <- reactive({
+      input$race
+    })
+    library(tidyverse)
+    source("population_function.R")
+
+    ### Call the population_func function sourced from population_function.R
+    data <- population_func(as.numeric(year_input), state_input)
+    ### Match up the race the user input with the race variable in the data
+    race_var <- (unique(data$race))[str_detect(unique(tolower(data$race)), tolower(race_input))]
+    data <- data%>%
+      filter(race == race_var, year == year_input)%>%
+      arrange(desc(estimate))%>%
+      slice(1:10)
+    
+    outplot$distPlot1 <- renderPlot({
+      ggplot(data = data, aes(x = estimate, y = NAME))+
+        geom_bar(stat="identity")
+    })
+    
+    # output$distPlot1 <- renderPlot({
+    #     # generate bins based on input$bins from ui.R
+    #     x    <- faithful[, 2]
+    #     bins <- seq(min(x), max(x), length.out = 10 + 1)
+    # 
+    #     # draw the histogram with the specified number of bins
+    #     hist(x, breaks = 10, col = 'darkgray', border = 'white',
+    #          xlab = paste('Waiting time to next eruption (in mins)', input$pollutant, input$stateTextInput, sep = ""),
+    #          main = 'Histogram of waiting times')
+    # })
 
     output$distPlot2 <- renderPlot({
       # generate bins based on input$bins from ui.R
