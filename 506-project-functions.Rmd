@@ -191,8 +191,35 @@ population_func <- function(year, state){
      data$variable == "B02001_001" ~ "Total population",
      data$variable == "B03002_001" ~ "Total hispanic latino"
    )
-   data$year <- rep(year, nrow(data))
-   ### Extract county and state from the NAME variable here
+   geometry <- as.data.frame(data%>%select(c(geometry, GEOID)))
+   print(head(geometry))
+   
+   data <- as.data.frame(data)
+   total_population <- data%>%filter(race == "Total population")
+   data <- left_join(data, total_population, by = "GEOID")
+   data <- data%>%
+      select(c(GEOID, estimate.x, estimate.y, race.x))%>%
+      ### Create a new variable that is the proportion of each race
+      mutate(race_prop = estimate.x / estimate.y)
+
+
+   colnames(data) <- c("GEOID", "population", "total_population", "race", "race_proportion")
+   
+   ### Add geometry 
+   print(head(data))
+   data <- merge(data, geometry, by = "GEOID", all.x=TRUE)
+   
+   
+  #  total_population <- data%>%
+  # filter(race == "Total population")
+  # 
+  #  data <- left(data, total_population, by = "GEOID")
+  # data <- data%>%
+  #   select(c(countytract, variable.x, population.x, race.x, population.y))%>%
+  # ### Create a new variable that is the proportion of each race
+  # mutate(race_prop = population.x / population.y)
+  #  data$year <- rep(year, nrow(data))
+  #  ### Extract county and state from the NAME variable here
    
    return(data)
    
@@ -202,8 +229,36 @@ population_func <- function(year, state){
 ```{r}
 test <- population_func(2009, "MI")
 ```
+
+```{r}
+head(test)
+```
+
 ```{r}
 ### Find percentages of each demographic group HERE
+test <- as.data.frame(test)
+```
+
+```{r}
+total_population <- test%>%filter(race == "Total population")
+```
+
+```{r}
+census_data <- left_join(test, total_population, by = "GEOID")
 
 ```
+
+```{r}
+census_data <- census_data%>%
+  select(c(GEOID, estimate.x, estimate.y, race.x))%>%
+  ### Create a new variable that is the proportion of each race
+  mutate(race_prop = estimate.x / estimate.y)
+```
+
+
+```{r}
+head(census_data, 10)
+```
+
+
 
