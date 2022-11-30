@@ -47,59 +47,68 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                   fluidRow(
                     splitLayout(cellWidths = c("50%", "50%"), plotOutput("distPlot1"), plotOutput("distPlot2"))
                   )
+          # textOutput("race")
         )
     )
 )
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-    year_input <- reactive({
+    year <- reactive({
       as.numeric(input$year)
     })
-    state_input <- reactive({
-      input$state
+    state <- reactive({
+      getSymbols(input$state)
     })
-    race_input <- reactive({
-      input$race
+    race <- reactive({
+      getSymbols(input$race)
     })
-    library(tidyverse)
-    source("population_function.R")
+    # output$race <- reactive(input$race)
+    
+    output$distPlot1 <- renderPlot(plot(1:10 ~ 1:10,
+         xlab = race()))
+    output$distPlot2 <- renderPlot(plot(1:10 ~ 1:10,
+                         xlab = state()))
+    
+    # library(tidyverse)
+    # source("population_function.R")
 
     ### Call the population_func function sourced from population_function.R
-    data <- population_func(as.numeric(year_input), state_input)
+    # data <- population_func(year(),state())
+    
     ### Match up the race the user input with the race variable in the data
-    race_var <- (unique(data$race))[str_detect(unique(tolower(data$race)), tolower(race_input))]
-    data <- data%>%
-      filter(race == race_var, year == year_input)%>%
-      arrange(desc(estimate))%>%
-      slice(1:10)
-    
-    outplot$distPlot1 <- renderPlot({
-      ggplot(data = data, aes(x = estimate, y = NAME))+
-        geom_bar(stat="identity")
-    })
-    
-    # output$distPlot1 <- renderPlot({
-    #     # generate bins based on input$bins from ui.R
-    #     x    <- faithful[, 2]
-    #     bins <- seq(min(x), max(x), length.out = 10 + 1)
+    # race_var <- (unique(data$race))[str_detect(unique(tolower(data$race)), tolower(race_input))]
+    # data <- data%>%
+    #   filter(race == race_var, year == year_input)%>%
+    #   arrange(desc(estimate))%>%
+    #   slice(1:10)
     # 
-    #     # draw the histogram with the specified number of bins
-    #     hist(x, breaks = 10, col = 'darkgray', border = 'white',
-    #          xlab = paste('Waiting time to next eruption (in mins)', input$pollutant, input$stateTextInput, sep = ""),
-    #          main = 'Histogram of waiting times')
+    # outplot$distPlot1 <- renderPlot({
+    #   ggplot(data = data, aes(x = estimate, y = NAME))+
+    #     geom_bar(stat="identity")
     # })
-
-    output$distPlot2 <- renderPlot({
-      # generate bins based on input$bins from ui.R
-      x    <- faithful[, 2]
-      bins <- seq(min(x), max(x), length.out = 10 + 1)
-
-      # draw the histogram with the specified number of bins
-      hist(x, breaks = 10, col = 'darkgray', border = 'white',
-           xlab = paste('Waiting time to next eruption (in mins)'),
-           main = 'Histogram of waiting times')
-    })
+    # 
+    # # output$distPlot1 <- renderPlot({
+    # #     # generate bins based on input$bins from ui.R
+    # #     x    <- faithful[, 2]
+    # #     bins <- seq(min(x), max(x), length.out = 10 + 1)
+    # # 
+    # #     # draw the histogram with the specified number of bins
+    # #     hist(x, breaks = 10, col = 'darkgray', border = 'white',
+    # #          xlab = paste('Waiting time to next eruption (in mins)', input$pollutant, input$stateTextInput, sep = ""),
+    # #          main = 'Histogram of waiting times')
+    # # })
+    # 
+    # output$distPlot2 <- renderPlot({
+    #   # generate bins based on input$bins from ui.R
+    #   x    <- faithful[, 2]
+    #   bins <- seq(min(x), max(x), length.out = 10 + 1)
+    # 
+    #   # draw the histogram with the specified number of bins
+    #   hist(x, breaks = 10, col = 'darkgray', border = 'white',
+    #        xlab = paste('Waiting time to next eruption (in mins)'),
+    #        main = 'Histogram of waiting times')
+    # })
 
 
 }
