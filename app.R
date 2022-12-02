@@ -44,31 +44,59 @@ ui <- fluidPage(theme = shinytheme("lumen"),
 
         # Show a plot of the generated distribution
         mainPanel(
-                  fluidRow(
-                    splitLayout(cellWidths = c("50%", "50%"), plotOutput("distPlot1"), plotOutput("distPlot2"))
-                  )
-          # textOutput("race")
+                  # fluidRow(
+                  #   splitLayout(cellWidths = c("50%", "50%"), plotOutput("distPlot1"), plotOutput("distPlot2"))
+                  # )
+          plotOutput("plot")
+          # textOutput("vec")        # ALIGNS TO renderTable
+          
+        # textOutput("dim")
         )
     )
 )
 
 # Define server logic required to draw a histogram
-server <- function(input, output) {
-    year <- reactive({
-      as.numeric(input$year)
-    })
-    state <- reactive({
-      getSymbols(input$state)
-    })
-    race <- reactive({
-      getSymbols(input$race)
-    })
-    # output$race <- reactive(input$race)
+server <- function(input, output, session) {
+    # year <- reactive({
+    #   as.numeric(input$year)
+    # })
+    # state <- reactive({
+    #   getSymbols(input$state)
+    # })
+    # race <- reactive({
+    #   getSymbols(input$race)
+    # })
+    output$year <- reactive(input$year)
+    output$state <- reactive(input$state)
     
-    output$distPlot1 <- renderPlot(plot(1:10 ~ 1:10,
-         xlab = race()))
-    output$distPlot2 <- renderPlot(plot(1:10 ~ 1:10,
-                         xlab = state()))
+    
+    population_data <- reactive({
+      return(as.data.frame(population_func(as.numeric(input$year), input$state)))
+    })
+    
+    
+    output$plot <- renderPlot({
+      req(population_data())
+      g <- ggplot(population_data(), aes( y = estimate, x = year))
+      g + geom_point()
+      #browser()
+    })
+    
+    # data <- population_data()
+    # 
+    # output$vec <- renderText(typeof(data))
+    # 
+    # 
+    # output$valueOut <- renderTable(population_data())
+    # output$plotOne <- renderPlot({
+    #   ggplot(data=population_data, aes(x=year, y = estimate))+geom_point()
+    # })
+    # output$dim <- nrow(population_data)
+    
+    # output$distPlot1 <- renderPlot(plot(1:10 ~ 1:10,
+    #      xlab = race()))
+    # output$distPlot2 <- renderPlot(plot(1:10 ~ 1:10,
+    #                      xlab = state()))
     
     # library(tidyverse)
     # source("population_function.R")
