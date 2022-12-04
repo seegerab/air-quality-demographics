@@ -145,6 +145,7 @@ pop_func <- function(x,y){
 ```{r}
 ### Alternate population function:
 population_func <- function(year, state){
+  library(sf)
   ### Error checking for the inputs 
   ### Verify year is a numeric
   if (!is.numeric(year)){
@@ -191,36 +192,40 @@ population_func <- function(year, state){
      data$variable == "B02001_001" ~ "Total population",
      data$variable == "B03002_001" ~ "Total hispanic latino"
    )
-   geometry <- as.data.frame(data%>%select(c(geometry, GEOID)))
-   print(head(geometry))
-   
-   data <- as.data.frame(data)
    total_population <- data%>%filter(race == "Total population")
-   data <- left_join(data, total_population, by = "GEOID")
+   # print(head(geometry))
+   # 
+   # # data <- as.data.frame(data)
+   # total_population <- data%>%filter(race == "Total population")
+   
+   data <- st_join(data, total_population)
+   # return(data)
    data <- data%>%
-      select(c(GEOID, estimate.x, estimate.y, race.x))%>%
+      select(c(GEOID.x, GEOID.y, estimate.x, estimate.y, race.x, geometry))%>%
       ### Create a new variable that is the proportion of each race
       mutate(race_prop = estimate.x / estimate.y)
-
-
-   colnames(data) <- c("GEOID", "population", "total_population", "race", "race_proportion")
-   
-   ### Add geometry 
-   print(head(data))
-   data <- merge(data, geometry, by = "GEOID", all.x=TRUE)
-   
-   
-  #  total_population <- data%>%
-  # filter(race == "Total population")
   # 
-  #  data <- left(data, total_population, by = "GEOID")
-  # data <- data%>%
-  #   select(c(countytract, variable.x, population.x, race.x, population.y))%>%
-  # ### Create a new variable that is the proportion of each race
-  # mutate(race_prop = population.x / population.y)
-  #  data$year <- rep(year, nrow(data))
-  #  ### Extract county and state from the NAME variable here
-   
+  # 
+  #  colnames(data) <- c("GEOID", "population", "total_population", "race", "race_proportion", "geometry")
+  #  
+  #  ### Add geometry 
+  #  print(head(data))
+  #  # data$GEOID <- as.numeric(data$GEOID)
+  #  # geometry$GEOID <- as.numeric(geometry$GEOID)
+  #  data <- st_join(data, geometry)
+  #  
+  #  
+  # #  total_population <- data%>%
+  # # filter(race == "Total population")
+  # # 
+  # #  data <- left(data, total_population, by = "GEOID")
+  # # data <- data%>%
+  # #   select(c(countytract, variable.x, population.x, race.x, population.y))%>%
+  # # ### Create a new variable that is the proportion of each race
+  # # mutate(race_prop = population.x / population.y)
+  # #  data$year <- rep(year, nrow(data))
+  # #  ### Extract county and state from the NAME variable here
+  #  
    return(data)
    
 }

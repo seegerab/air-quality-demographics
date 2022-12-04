@@ -11,77 +11,19 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
 ```
 
 ```{r warning = FALSE, message = FALSE}
-library(writexl)
 library(dplyr)
-suppressWarnings(library(kableExtra))
 library(tidycensus)
-library(tigris)
 library(tidyverse)
 library(stringr)
 ```
 
 ```{r message = FALSE, echo = TRUE, results = "hide"}
-### Comment out these lines of code; this will change depending on who's running the code, and I think we all have the census key stored in our environment 
-# census_api_key("2567b1d4e4122ec716ee4e55fce64f07a9cbae74", install = TRUE, overwrite = TRUE)
-# Sys.setenv(CENSUS_API_KEY='Your API key here as a string' )
-# Reload .Renviron
+### Comment out these lines of code; this will change depending 
 readRenviron("~/.Renviron")
 Sys.getenv("CENSUS_API_KEY")
 ```
 
 # Function 1
-
-Create a function to extract data from the Census API
-- Inputs: state, year
-- Output: a dataframe with the population for each demographic group for each year for each county in the state
-
-```{r}
-census_var <- load_variables(year = 2010, dataset = 'sf1', cache=T)
-# All races except for hispanic or latino
-census_race <- census_var[grepl("^RACE$", census_var$concept), ]
-### as well as "Total!!", which are the different demographic groups
-census_race1 <- census_race[grepl("^Total!!", census_race$label), ]
-### Include the "Total" population
-census_race1 <- rbind(census_race1, census_race%>%filter(label == "Total" & name == "P003001")) ### There were 3 "Total" variables; upon investigating each, only keep P003001, which is the total population
-### Create a variable with the race
-census_race1$race <- substring(census_race1$label, 8)
-```
-
-```{r}
-### At this point, there are many races
-#unique(census_race1$race)
-```
-
-
-
-```{r}
-### If the race is an empty string "", that's the total population
-census_race1$race <- ifelse(census_race1$race == "", "Total", census_race1$race)
-### Filter to a subset of races
-races <- census_race1%>%
-  filter(
-  race %in% c("White alone", 
-              "Black alone", 
-              "American Indian and Alaska Native alone", 
-              "Asian alone", 
-              "Native Hawaiian and Other Pacific Islander alone", 
-              "Some Other Race alone",
-              ### Also include people who are two or more races 
-              "Two or More Races",
-              "Total"))
-
-#### Find the total hispanic or latino origin
-race_hl <- census_var[grepl("^HISPANIC OR LATINO ORIGIN BY RACE", census_var$concept), ]
-total_hl <- race_hl[grepl("^Total$", race_hl$label), ]
-### Change the label to be "TotalHispanicLatino", to separate from the total population
-total_hl$label <- "TotalHispanicLatino"
-total_hl$race <- c("Hispanic or Latino")
-all_races <- rbind(races, total_hl) ### 
-race_codes <- all_races[,1]
-### These are the variables we want to select from the Census API 
-race_codes <- as.vector(unlist(race_codes))
-```
-
 
 ```{r}
 ### Get the variables for the ACS census; this is different from the decenniel data
@@ -99,9 +41,6 @@ census_race1$race[census_race1$race == ""] <- "TotalAll"
 ### Remove the more specific "Two or more races" variables
 census_race1 <- census_race1 %>%
   filter(!race %in% c("Two or more races!!Two races including Some other race", "Two or more races!!Two races excluding Some other race, and three or more races"))
-```
-
-```{r}
 #### Find the total hispanic or latino origin
 race_hl <- census_var_acs[grepl("^HISPANIC OR LATINO ORIGIN BY RACE", census_var_acs$concept), ]
 total_hl <- race_hl[grepl("^Estimate!!Total$", race_hl$label), ]
@@ -115,44 +54,20 @@ race_codes <- as.vector(unlist(race_codes))
 ```
 
 
-
-# Functions to extract data
-
-```{r }
-pop_func <- function(x,y){
-  tryCatch(
-    expr = {
-       df <- get_decennial(geography = "county", 
-                                  variables = c(race_codes), 
-                                  year = y, state = x,
-                                  geometry = TRUE)
-      df <- df %>% group_by(NAME, variable) %>% summarize(population = value)
-      if(str_detect(x, "^[:upper:]+$") == FALSE){stop("State abbreviations are two capital letters")} 
-      else{return(df)}
-      },
-    error = {
-      if (nchar(x) != 2){"The function only accepts state abbreviations"}
-      if(is.character(x) == FALSE){"State abbreviations are two letter strings"}
-      if (nchar(y) != 4 | is.numeric(y) == FALSE){"Years must be four digits long"}
-      }
-    )
-}
-```
-
-
-
 ```{r}
-### Alternate population function:
+### Have the function accept a variable number of years
 population_func <- function(year, state){
   ### Error checking for the inputs 
   ### Verify year is a numeric
   if (!is.numeric(year)){
     stop("Year must be a numeric value, not a character.")
   }
+  
   ### Verify that the year is between 2005 and 2021
   if (year < 2005 | year > 2021){
     stop("American Community Survey Data is only available between 2005 and 2020.")
   }
+  
   ### Check that state is a character
   if (!is.character(state)){
     stop("State must be a character.")
@@ -173,11 +88,13 @@ population_func <- function(year, state){
                  "B02001_001",
                  "B03002_001")
    ### Use the acs survey, not the decenniel survey
+   
    data <- get_acs(geography = "county", 
                 variables = c(race_var), 
                 year = year, 
                 state = state,
                 geometry = TRUE)
+ 
    ### Create a column with the demographic group
    data$race <- case_when(
      data$variable == "B02001_002" ~ "Total White alone",
@@ -190,9 +107,9 @@ population_func <- function(year, state){
      data$variable == "B02001_001" ~ "Total population",
      data$variable == "B03002_001" ~ "Total hispanic latino"
    )
-   geometry <- as.data.frame(data%>%select(c(geometry, GEOID, NAME)))
-   #print(head(geometry))
    
+   geometry <- as.data.frame(data%>%select(c(geometry, GEOID, NAME)))
+
    data <- as.data.frame(data)
    total_population <- data%>%filter(race == "Total population")
    data <- left_join(data, total_population, by = "GEOID")
@@ -210,59 +127,25 @@ population_func <- function(year, state){
     data$year <- rep(year, nrow(data)) 
     data <- data[,c("GEOID", "population.x", "total_population.x", "race.x", "race_proportion.x", "NAME.x", "year")] # take out geometry.x
     colnames(data) <- c("GEOID", "population", "total_population", "race", "race_proportion", "NAME", "year")
-   return(data)
+    data$county <- sapply(strsplit(data$NAME, " County"), "[[", 1)
+    data <- left_join(data, geometry, by = "GEOID")
+    ### Need to figure out why some rows are duplicating
+   return(distinct(data))
    }
 
 ```
 
 ```{r message=FALSE}
 ca1 <- population_func(2012, "CA")
-ca1$county <- substr(ca1$NAME,1,nchar(ca1$NAME)-18)
-
-ca2 <- population_func(2016, "CA")
-ca2$county <- substr(ca2$NAME,1,nchar(ca2$NAME)-18)
-
-
-ca3 <- population_func(2020, "CA")
-ca3$county <- substr(ca3$NAME,1,nchar(ca3$NAME)-18)
-
-ca <- rbind(ca1,ca2,ca3)
-write.csv(ca, "/Users/VickiChang/Desktop/ca.csv")
-```
-
-```{r message=FALSE}
-or1 <- population_func(2012, "OR")
-or1$county <- substr(or1$NAME,1,nchar(or1$NAME)-14)
-
-or2 <- population_func(2016, "CA")
-or2$county <- substr(or2$NAME,1,nchar(or2$NAME)-14)
-
-
-or3 <- population_func(2020, "CA")
-or3$county <- substr(or3$NAME,1,nchar(or3$NAME)-14)
-
-or <- rbind(or1,or2,or3)
-write.csv(or, "/Users/VickiChang/Desktop/or.csv")
-```
-  
-```{r message=FALSE}
-wa1 <- population_func(2012, "WA")
-wa1$county <- substr(wa1$NAME,1,nchar(wa1$NAME)-18)
-
-wa2 <- population_func(2016, "WA")
-wa2$county <- substr(wa2$NAME,1,nchar(wa2$NAME)-18)
-
-wa3 <- population_func(2020, "WA")
-wa3$county <- substr(wa3$NAME,1,nchar(wa3$NAME)-18)
-
-wa <- rbind(wa1,wa2,wa3)
-write.csv(wa, "/Users/VickiChang/Desktop/wa.csv")
 ```
 
 ```{r}
-#ca <- read.csv("/Users/VickiChang/Desktop/ca.csv")
-#ca_epa <- read.csv("/Users/VickiChang/Desktop/ca_epa.csv")
+### Call the EPA function to see if they can easily be merged
+df2 <- download.dailyEPA(state = "06", year = "2012", pollutant = "ozone")
 ```
 
+```{r}
+merged_data <- left_join(ca1, df2, by = "county")
+```
 
  
