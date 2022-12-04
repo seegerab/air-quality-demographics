@@ -15,6 +15,11 @@ library(dplyr)
 library(tidycensus)
 library(tidyverse)
 library(stringr)
+library(jsonlite)
+library(ggplot2) 
+library(maps)
+library(usmap)
+library(RAQSAPI)
 ```
 
 ```{r message = FALSE, echo = TRUE, results = "hide"}
@@ -23,7 +28,7 @@ readRenviron("~/.Renviron")
 Sys.getenv("CENSUS_API_KEY")
 ```
 
-# Function 1
+# Population Function
 
 ```{r}
 ### Get the variables for the ACS census; this is different from the decenniel data
@@ -136,16 +141,79 @@ population_func <- function(year, state){
 ```
 
 ```{r message=FALSE}
-ca1 <- population_func(2012, "CA")
+california_2012_census <- population_func(2012, "CA")
+```
+
+# EPA Function
+
+```{r}
+### Create an account by replacing "myemail@example.com" with your email:
+### https://aqs.epa.gov/data/api/signup?email=myemail@example.com
+email <- "seegerab@umich.edu"
+key <- "greengazelle94"
+```
+
+
+- Inputs: state, pollutant, year
+- Output: a data frame with the average concentration of the pollutant for each year for each county in the state 
+
+```{r}
+download.dailyEPA <- function(state, year, pollutant = c("ozone","so2","co","no2","pm25.frm","pm25","pm10")){
+  if(pollutant=="ozone"){param="44201"}
+  if(pollutant=="so2"){param="42401"}
+  if(pollutant=="co"){param="42101"}
+  if(pollutant=="no2"){param="42602"}
+  if(pollutant=="pm25.frm"){param="88101"}
+  if(pollutant=="pm25"){param="88502"}
+  if(pollutant=="pm10"){param="81102"}
+  
+URL <- paste0("https://aqs.epa.gov/data/api/dailyData/byState?",
+              "email=", email,"&",
+              "key=", key ,"&", 
+              "param=", param,"&", 
+              "bdate=", year,"0101&",
+              "edate=", year,"0101&",
+              "state=", state)
+print(URL)
+df <- data.frame(fromJSON(URL))
+df <- subset(df, select = c(5:ncol(df)))
+colnames(df) <- gsub("Data.", "", colnames(df), fixed=TRUE)
+df$year <- format(as.Date(df$date_local, format="%Y-%m-%d"),"%Y")
+
+# Arithmetic Mean (Daily)- The measure of central tendency obtained from the sum of the observed pollutant data values in the daily data set divided by the number of values that comprise the sum for the daily data set. 
+
+new_df <- df %>% 
+          group_by(county, year) %>% 
+          summarize(mean_aqi = mean(aqi, na.rm = TRUE),
+                    mean_conc = mean(arithmetic_mean))
+
+# Creating AQI categories
+new_df$aqi_cat <- as.factor(
+  ifelse(new_df$mean_aqi >= 0 & new_df$mean_aqi <= 50, "Good",
+  ifelse(new_df$mean_aqi >= 51 & new_df$mean_aqi <= 100, "Moderate", 
+  ifelse(new_df$mean_aqi >= 101 & new_df$mean_aqi <= 150, "Unhealthy for Sensitive Groups", 
+  ifelse(new_df$mean_aqi >= 151 & new_df$mean_aqi <= 200, "Unhealthy", 
+  ifelse(new_df$mean_aqi > 201 & new_df$mean_aqi <= 300, "Very Unhealthy", 
+  ifelse(new_df$mean_aqi >= 301 & new_df$mean_aqi <= 500, "Hazardous",0)))))))
+
+new_df <- new_df %>% select(county, mean_conc, mean_aqi, aqi_cat, year)%>%
+  mutate(pollutant = pollutant)
+}
 ```
 
 ```{r}
-### Call the EPA function to see if they can easily be merged
-df2 <- download.dailyEPA(state = "06", year = "2012", pollutant = "ozone")
+### Call the EPA function 
+california_2012_ozone <- download.dailyEPA(state = "06", year = "2012", pollutant = "ozone")
 ```
 
 ```{r}
+### Merge the data
 merged_data <- left_join(ca1, df2, by = "county")
 ```
+
+```{r}
+head(merged_data)
+```
+
 
  
