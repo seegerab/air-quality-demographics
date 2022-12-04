@@ -40,15 +40,13 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                         choices = c("pm25", "CO2", "Ozone", "Other Pollutants Here..."),
                         multiple = FALSE),
             selectInput("state", "State",
-                        choices = c("MI", "OH", "IN", "IL"),
+                        choices = c("CA", "WA", "OR"),
                         ### May want to include a select multiple option later
                         multiple = FALSE),
             selectInput("year", "Year",
                         choices = c("2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020"),
                         ### May want to include a select multiple option later
                         multiple = FALSE),
-            textInput("stateTextInput", h3("State"),
-                      value = "")
             
         ),
 
@@ -57,7 +55,7 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                   # fluidRow(
                   #   splitLayout(cellWidths = c("50%", "50%"), plotOutput("plot1"), plotOutput("plot1"))
                   # )
-          plotOutput("plot2")
+          plotOutput("plot1")
 
         )
     )
@@ -79,13 +77,8 @@ server <- function(input, output, session) {
     })
     
     
-    output$plot1 <- renderPlot({
-      req(population_data())
-      g <- ggplot(population_data(), aes(y = estimate, x = year))
-      g + geom_point()
-    })
     
-    output$plot2 <- renderPlot({
+    output$plot1 <- renderPlot({
       req(population_data())
       g <- ggplot(population_data(), aes(fill = estimate, geometry = geometry))
       g + geom_sf() +   
@@ -101,4 +94,30 @@ server <- function(input, output, session) {
 
 # Run the application 
 shinyApp(ui = ui, server = server)
+
+
+### To Do
+
+### Marley
+
+### Include year in the title of the plot
+### Figure out how to show two maps side-by-side
+
+### Replace "Total Black or African American alone" with "African American" in the function, or here in the Shiny App
+### Replace state abbr. with the full name 
+
+### Abigail 
+
+### Change year to 2012, 2016, 2020 
+
+### Three plots 
+
+### Find a third data source
+
+### Join by the county name (no county in the name)
+
+
+
+
+
 
