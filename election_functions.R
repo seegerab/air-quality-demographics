@@ -16,7 +16,7 @@ extract_election <- function(year_input, state_input){
     filter(year == year_input)%>%
     filter(state == state_input)%>%
     mutate(vote_prop = candidatevotes / totalvotes)%>%
-    select(c(year, state, district, party, vote_prop))
+    select(c(year, state, district, party, vote_prop, candidatevotes, totalvotes))
   ### Add a column with the shape information
   geometry <- congressional_districts(state = toupper(substr(state_input, 1, 2)), year = year_input)%>%
     select(geometry, NAMELSAD)
