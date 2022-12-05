@@ -1,6 +1,6 @@
 ### Read in the data from U.S. House 1976-2020 from https://electionlab.mit.edu/data
 data <- read.csv("1976-2020-house.csv")
-extract_election <- function(year_input, state_input){
+extract_election_house <- function(year_input, state_input){
   ### Load in necessary packages
   library(tidyverse)
   library(sf)
@@ -47,3 +47,28 @@ ggplot(data = extract_election(2020, "CALIFORNIA")%>%filter(party == "DEMOCRAT")
   labs(fill = "Percent of the vote the\nDemocratic candidate recieved", title = "2012 U.S. House of Representatives Results")+
   scale_fill_gradient2(low="red", midpoint = 0.5, high="blue")+
   theme_minimal()
+
+
+data <- read.csv("countypres_2000-2020.csv")
+extract_election_pres <- function(year_input, state_input){
+  library(tidyverse)
+  library(stringr)
+   if (!year_input %in% c(2000, 2004, 2008, 2012, 2016, 2020)){
+    stop("Year must be either: 2000, 2004, 2008, 2012, 2016, or 2020")
+  }
+  if (!state_input %in% state.abb){
+    stop("The state must be a two-letter code, with both letters capitalized.")
+  }
+  data$party <- ifelse(data$party %in% c("DEMOCRAT", "REPUBLICAN"), data$party, "OTHER")
+  data <- data%>%
+    filter(state_po == state_input)%>%
+    filter(year == year_input)%>%
+    select(c(year, state_po, county_name, party, candidatevotes, totalvotes))%>%
+    mutate(vote_percent = candidatevotes / totalvotes)%>%
+    group_by(year, state_po, county_name, party)%>%
+    summarize(vote_percent = sum(vote_percent))
+  data$county_name <- str_to_title(data$county_name)
+  return(data)
+}
+
+test <- extract_election_pres(2000, "CA")
