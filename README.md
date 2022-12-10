@@ -8,13 +8,13 @@ Here, we use R, R Shiny, SQL, and Census and EPA APIs to investigate the relatio
 
 The data comes from the Census Bureau through the Census API using the censusapi package and the Environmental Protection Agency (EPA) through the EPA API by web scraping. We are also using data from the U.S. House (1976-2020) from the MIT Election Lab.
 
-We start by creating a function to extract data from the Census API. We will refer to this function as the population function. The population function will take in a state and year, and will output a dataframe with the population for each demographic group for each county for the specified state and year.
+We start by creating a function to extract data from the Census API. We will refer to this function as the **population function**. The population function will take in a state and year, and will output a dataframe with the population for each demographic group for each county for the specified state and year.
 
-A second function is created to extract data from the EPA API. We will refer to this function as the EPA function. The EPA function will take in a state, pollutant, and year. The following pollutants can be used in the function: ozone, SO2, CO, NO2, PM2.5 (FRM), PM2.5, and PM10. The function will output a dataframe with the average concentration and highest concentration for each county for the specified state, pollutant, and year.
+A second function is created to extract data from the EPA API. We will refer to this function as the **EPA function**. The EPA function will take in a state, pollutant, and year. The following pollutants can be used in the function: ozone, SO2, CO, NO2, PM2.5 (FRM), PM2.5, and PM10. The function will output a dataframe with the average concentration and highest concentration for each county for the specified state, pollutant, and year.
 
 The data frames from the population function and EPA function will be merged using the county variable. We will only focus on West Coast states (CA, OR, WA) for this project. We will focus on the years 2012, 2016, and 2020.
 
-A third function is created to extract data from the U.S. House (1976-2020) csv file. We will refer to this function as the election function. The election function will take in a state and year, and output a dataframe with ??
+A third function is created to extract data from the U.S. House (1976-2020) csv file. We will refer to this function as the **election function**. The election function will take in a state and year, and output a dataframe with ??
 
 The data frame from the election function will be merged with the Census and EPA data using what variable??
 
