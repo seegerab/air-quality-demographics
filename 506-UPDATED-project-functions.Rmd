@@ -132,56 +132,6 @@ population_func <- function(year, state){
    return(data)}
 ```
 
-```{r message=FALSE}
-### Call function to get data for California in 2012, 2016, and 2020
-ca1 <- population_func(2012, "CA")
-### Create a county variable that does not include state name. Will be used to merge population data with EPA data
-ca1$county <- substr(ca1$NAME,1,nchar(ca1$NAME)-18)
-
-ca2 <- population_func(2016, "CA")
-ca2$county <- substr(ca2$NAME,1,nchar(ca2$NAME)-18)
-
-
-ca3 <- population_func(2020, "CA")
-ca3$county <- substr(ca3$NAME,1,nchar(ca3$NAME)-18)
-
-ca <- rbind(ca1,ca2,ca3)
-write.csv(ca, "/Users/VickiChang/Desktop/ca.csv")
-```
-
-```{r message=FALSE}
-### Call function to get data for Oregon in 2012, 2016, and 2020
-or1 <- population_func(2012, "OR")
-### Create a county variable that does not include state name. Will be used to merge population data with EPA data
-or1$county <- substr(or1$NAME,1,nchar(or1$NAME)-14)
-
-or2 <- population_func(2016, "CA")
-or2$county <- substr(or2$NAME,1,nchar(or2$NAME)-14)
-
-
-or3 <- population_func(2020, "CA")
-or3$county <- substr(or3$NAME,1,nchar(or3$NAME)-14)
-
-or <- rbind(or1,or2,or3)
-write.csv(or, "/Users/VickiChang/Desktop/or.csv")
-```
-  
-```{r message=FALSE}
-### Call function to get data for Washington in 2012, 2016, and 2020
-wa1 <- population_func(2012, "WA")
-### Create a county variable that does not include state name. Will be used to merge population data with EPA data
-wa1$county <- substr(wa1$NAME,1,nchar(wa1$NAME)-18)
-
-wa2 <- population_func(2016, "WA")
-wa2$county <- substr(wa2$NAME,1,nchar(wa2$NAME)-18)
-
-wa3 <- population_func(2020, "WA")
-wa3$county <- substr(wa3$NAME,1,nchar(wa3$NAME)-18)
-
-wa <- rbind(wa1,wa2,wa3)
-write.csv(wa, "/Users/VickiChang/Desktop/wa.csv")
-```
-
 # EPA Function
 
 ```{r}
@@ -239,18 +189,97 @@ new_df <- new_df %>% select(county, mean_conc, mean_aqi, aqi_cat, year)%>%
 }
 ```
 
-```{r}
-### Call the EPA function 
-california_2012_ozone <- download.dailyEPA(state = "06", year = "2012", pollutant = "ozone")
+```{r message=FALSE}
+### Call population function to get data for California in 2012, 2016, and 2020
+ca1 <- population_func(2012, "CA")
+### Create a county variable that does not include state name. Will be used to merge population data with EPA data
+ca1$county <- substr(ca1$NAME,1,nchar(ca1$NAME)-18)
+
+ca2 <- population_func(2016, "CA")
+ca2$county <- substr(ca2$NAME,1,nchar(ca2$NAME)-18)
+
+
+ca3 <- population_func(2020, "CA")
+ca3$county <- substr(ca3$NAME,1,nchar(ca3$NAME)-18)
+
+ca <- rbind(ca1,ca2,ca3)
+write.csv(ca, "/Users/VickiChang/Desktop/ca.csv")
+```
+
+```{r message=FALSE}
+### Call population function to get data for Oregon in 2012, 2016, and 2020
+or1 <- population_func(2012, "OR")
+### Create a county variable that does not include state name. Will be used to merge population data with EPA data
+or1$county <- substr(or1$NAME,1,nchar(or1$NAME)-14)
+
+or2 <- population_func(2016, "CA")
+or2$county <- substr(or2$NAME,1,nchar(or2$NAME)-14)
+
+
+or3 <- population_func(2020, "CA")
+or3$county <- substr(or3$NAME,1,nchar(or3$NAME)-14)
+
+or <- rbind(or1,or2,or3)
+write.csv(or, "/Users/VickiChang/Desktop/or.csv")
+```
+  
+```{r message=FALSE}
+### Call population function to get data for Washington in 2012, 2016, and 2020
+wa1 <- population_func(2012, "WA")
+### Create a county variable that does not include state name. Will be used to merge population data with EPA data
+wa1$county <- substr(wa1$NAME,1,nchar(wa1$NAME)-18)
+
+wa2 <- population_func(2016, "WA")
+wa2$county <- substr(wa2$NAME,1,nchar(wa2$NAME)-18)
+
+wa3 <- population_func(2020, "WA")
+wa3$county <- substr(wa3$NAME,1,nchar(wa3$NAME)-18)
+
+wa <- rbind(wa1,wa2,wa3)
+write.csv(wa, "/Users/VickiChang/Desktop/wa.csv")
 ```
 
 ```{r}
-### Merge the data
-merged_data <- left_join(ca1, df2, by = "county")
+ca <- read.csv("/Users/VickiChang/Desktop/506 Data Files/ca.csv")
+ca_epa <- read.csv("/Users/VickiChang/Desktop/506 Data Files/ca_epa.csv")
+ca <- ca[,-1]
 ```
 
 ```{r}
-head(merged_data)
+ca$county <- stringr::str_trim(ca$county)
+ca_full <- left_join(ca, ca_epa, by = "county")
+ca_full <- ca_full[,c(1:7,9,10)]
+colnames(ca_full)[which(colnames(ca_full) == "year.x")] <- "year"
+```
+
+```{r}
+or <- read.csv("/Users/VickiChang/Desktop/506 Data Files/or.csv")
+or_epa <- read.csv("/Users/VickiChang/Desktop/506 Data Files/or_epa.csv")
+```
+
+```{r}
+or$county <- stringr::str_trim(or$county)
+or_full <- left_join(or[,-1], or_epa, by = "county")
+or_full <- or_full[,c(1:7,9,10)]
+colnames(or_full)[which(colnames(or_full) == "year.x")] <- "year"
+```
+
+```{r}
+wa <- read.csv("/Users/VickiChang/Desktop/506 Data Files/wa.csv")
+wa_epa <- read.csv("/Users/VickiChang/Desktop/506 Data Files/wa_epa.csv")
+```
+
+```{r}
+wa$county <- stringr::str_trim(wa$county)
+wa_full <- left_join(wa[,-1], wa_epa, by = "county")
+wa_full <- wa_full[,c(1:7,9,10)]
+colnames(wa_full)[which(colnames(wa_full) == "year.x")] <- "year"
+```
+
+```{r}
+write.csv(ca_full, "/Users/VickiChang/Desktop/ca_full.csv")
+write.csv(or_full, "/Users/VickiChang/Desktop/or_full.csv")
+write.csv(wa_full, "/Users/VickiChang/Desktop/wa_full.csv")
 ```
 
 
