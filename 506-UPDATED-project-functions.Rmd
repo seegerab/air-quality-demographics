@@ -203,7 +203,6 @@ ca3 <- population_func(2020, "CA")
 ca3$county <- substr(ca3$NAME,1,nchar(ca3$NAME)-18)
 
 ca <- rbind(ca1,ca2,ca3)
-write.csv(ca, "/Users/VickiChang/Desktop/ca.csv")
 ```
 
 ```{r message=FALSE}
@@ -220,7 +219,6 @@ or3 <- population_func(2020, "CA")
 or3$county <- substr(or3$NAME,1,nchar(or3$NAME)-14)
 
 or <- rbind(or1,or2,or3)
-write.csv(or, "/Users/VickiChang/Desktop/or.csv")
 ```
   
 ```{r message=FALSE}
@@ -236,16 +234,116 @@ wa3 <- population_func(2020, "WA")
 wa3$county <- substr(wa3$NAME,1,nchar(wa3$NAME)-18)
 
 wa <- rbind(wa1,wa2,wa3)
-write.csv(wa, "/Users/VickiChang/Desktop/wa.csv")
+```
+
+```{r warning=FALSE, message=FALSE}
+### Call EPA function to extract data for CA
+### Years 2012, 2016, 2020 
+### Each pollutant
+ca_2012_1 <- download.dailyEPA(state = "06", year = "2012", pollutant = "ozone")
+ca_2012_2 <- download.dailyEPA(state = "06", year = "2012", pollutant = "so2")
+ca_2012_3 <- download.dailyEPA(state = "06", year = "2012", pollutant = "co")
+ca_2012_4 <- download.dailyEPA(state = "06", year = "2012", pollutant = "no2")
+ca_2012_5 <- download.dailyEPA(state = "06", year = "2012", pollutant = "pm25.frm")
+ca_2012_6 <- download.dailyEPA(state = "06", year = "2012", pollutant = "pm25")
+ca_2012_7 <- download.dailyEPA(state = "06", year = "2012", pollutant = "pm10")
+
+ca_2012 <- rbind(ca_2012_1, ca_2012_2, ca_2012_3, ca_2012_4, ca_2012_5, ca_2012_6, ca_2012_7)
+
+ca_2016_1 <- download.dailyEPA(state = "06", year = "2016", pollutant = "ozone")
+ca_2016_2 <- download.dailyEPA(state = "06", year = "2016", pollutant = "so2")
+ca_2016_3 <- download.dailyEPA(state = "06", year = "2016", pollutant = "co")
+ca_2016_4 <- download.dailyEPA(state = "06", year = "2016", pollutant = "no2")
+ca_2016_5 <- download.dailyEPA(state = "06", year = "2016", pollutant = "pm25.frm")
+ca_2016_6 <- download.dailyEPA(state = "06", year = "2016", pollutant = "pm25")
+ca_2016_7 <- download.dailyEPA(state = "06", year = "2016", pollutant = "pm10")
+
+ca_2016 <- rbind(ca_2016_1, ca_2016_2, ca_2016_3, ca_2016_4, ca_2016_5, ca_2016_6, ca_2016_7)
+
+ca_2020_1 <- download.dailyEPA(state = "06", year = "2020", pollutant = "ozone")
+ca_2020_2 <- download.dailyEPA(state = "06", year = "2020", pollutant = "so2")
+ca_2020_3 <- download.dailyEPA(state = "06", year = "2020", pollutant = "co")
+ca_2020_4 <- download.dailyEPA(state = "06", year = "2020", pollutant = "no2")
+ca_2020_5 <- download.dailyEPA(state = "06", year = "2020", pollutant = "pm25.frm")
+ca_2020_6 <- download.dailyEPA(state = "06", year = "2020", pollutant = "pm25")
+ca_2020_7 <- download.dailyEPA(state = "06", year = "2020", pollutant = "pm10")
+
+ca_2020 <- rbind(ca_2020_1, ca_2020_2, ca_2020_3, ca_2020_4, ca_2020_5, ca_2020_6, ca_2020_7)
+
+ca_epa <- rbind(ca_2012, ca_2016,ca_2020)
+```
+
+```{r warning=FALSE, message=FALSE}
+or_2012_1 <- download.dailyEPA(state = "41", year = "2012", pollutant = "ozone")
+or_2012_2 <- download.dailyEPA(state = "41", year = "2012", pollutant = "so2")
+or_2012_3 <- download.dailyEPA(state = "41", year = "2012", pollutant = "co")
+or_2012_4 <- download.dailyEPA(state = "41", year = "2012", pollutant = "no2")
+or_2012_5 <- download.dailyEPA(state = "41", year = "2012", pollutant = "pm25.frm")
+or_2012_6 <- download.dailyEPA(state = "41", year = "2012", pollutant = "pm25")
+or_2012_7 <- download.dailyEPA(state = "41", year = "2012", pollutant = "pm10")
+
+or_2012 <- rbind(or_2012_1, or_2012_2, or_2012_3, or_2012_4, or_2012_5, or_2012_6, or_2012_7)
+
+or_2016_1 <- download.dailyEPA(state = "41", year = "2016", pollutant = "ozone")
+or_2016_2 <- download.dailyEPA(state = "41", year = "2016", pollutant = "so2")
+or_2016_3 <- download.dailyEPA(state = "41", year = "2016", pollutant = "co")
+or_2016_4 <- download.dailyEPA(state = "41", year = "2016", pollutant = "no2")
+or_2016_5 <- download.dailyEPA(state = "41", year = "2016", pollutant = "pm25.frm")
+or_2016_6 <- download.dailyEPA(state = "41", year = "2016", pollutant = "pm25")
+or_2016_7 <- download.dailyEPA(state = "41", year = "2016", pollutant = "pm10")
+
+or_2016 <- rbind(or_2016_1, or_2016_2, or_2016_3, or_2016_4, or_2016_5, or_2016_6, or_2016_7)
+
+or_2020_1 <- download.dailyEPA(state = "41", year = "2020", pollutant = "ozone")
+or_2020_2 <- download.dailyEPA(state = "41", year = "2020", pollutant = "so2")
+or_2020_3 <- download.dailyEPA(state = "41", year = "2020", pollutant = "co")
+or_2020_4 <- download.dailyEPA(state = "41", year = "2020", pollutant = "no2")
+or_2020_5 <- download.dailyEPA(state = "41", year = "2020", pollutant = "pm25.frm")
+or_2020_6 <- download.dailyEPA(state = "41", year = "2020", pollutant = "pm25")
+or_2020_7 <- download.dailyEPA(state = "41", year = "2020", pollutant = "pm10")
+
+or_2020 <- rbind(or_2020_1, or_2020_2, or_2020_3, or_2020_4, or_2020_5, or_2020_6, or_2020_7)
+
+or_epa <- rbind(or_2012, or_2016,or_2020)
+```
+
+```{r warning=FALSE, message=FALSE}
+wa_2012_1 <- download.dailyEPA(state = "53", year = "2012", pollutant = "ozone")
+wa_2012_2 <- download.dailyEPA(state = "53", year = "2012", pollutant = "so2")
+wa_2012_3 <- download.dailyEPA(state = "53", year = "2012", pollutant = "co")
+wa_2012_4 <- download.dailyEPA(state = "53", year = "2012", pollutant = "no2")
+wa_2012_5 <- download.dailyEPA(state = "53", year = "2012", pollutant = "pm25.frm")
+wa_2012_6 <- download.dailyEPA(state = "53", year = "2012", pollutant = "pm25")
+wa_2012_7 <- download.dailyEPA(state = "53", year = "2012", pollutant = "pm10")
+
+wa_2012 <- rbind(wa_2012_1, wa_2012_2, wa_2012_3, wa_2012_4, wa_2012_5, wa_2012_6, wa_2012_7)
+
+wa_2016_1 <- download.dailyEPA(state = "53", year = "2016", pollutant = "ozone")
+wa_2016_2 <- download.dailyEPA(state = "53", year = "2016", pollutant = "so2")
+wa_2016_3 <- download.dailyEPA(state = "53", year = "2016", pollutant = "co")
+wa_2016_4 <- download.dailyEPA(state = "53", year = "2016", pollutant = "no2")
+wa_2016_5 <- download.dailyEPA(state = "53", year = "2016", pollutant = "pm25.frm")
+wa_2016_6 <- download.dailyEPA(state = "53", year = "2016", pollutant = "pm25")
+wa_2016_7 <- download.dailyEPA(state = "53", year = "2016", pollutant = "pm10")
+
+wa_2016 <- rbind(wa_2016_1, wa_2016_2, wa_2016_3, wa_2016_4, wa_2016_5, wa_2016_6, wa_2016_7)
+
+wa_2020_1 <- download.dailyEPA(state = "53", year = "2020", pollutant = "ozone")
+wa_2020_2 <- download.dailyEPA(state = "53", year = "2020", pollutant = "so2")
+wa_2020_3 <- download.dailyEPA(state = "53", year = "2020", pollutant = "co")
+wa_2020_4 <- download.dailyEPA(state = "53", year = "2020", pollutant = "no2")
+wa_2020_5 <- download.dailyEPA(state = "53", year = "2020", pollutant = "pm25.frm")
+wa_2020_6 <- download.dailyEPA(state = "53", year = "2020", pollutant = "pm25")
+wa_2020_7 <- download.dailyEPA(state = "53", year = "2020", pollutant = "pm10")
+
+wa_2020 <- rbind(wa_2020_1, wa_2020_2, wa_2020_3, wa_2020_4, wa_2020_5, wa_2020_6, wa_2020_7)
+
+wa_epa <- rbind(wa_2012, wa_2016, wa_2020)
 ```
 
 ```{r}
-ca <- read.csv("/Users/VickiChang/Desktop/506 Data Files/ca.csv")
-ca_epa <- read.csv("/Users/VickiChang/Desktop/506 Data Files/ca_epa.csv")
+### Merge Census and EPA data for each CA
 ca <- ca[,-1]
-```
-
-```{r}
 ca$county <- stringr::str_trim(ca$county)
 ca_full <- left_join(ca, ca_epa, by = "county")
 ca_full <- ca_full[,c(1:7,9,10)]
@@ -253,11 +351,7 @@ colnames(ca_full)[which(colnames(ca_full) == "year.x")] <- "year"
 ```
 
 ```{r}
-or <- read.csv("/Users/VickiChang/Desktop/506 Data Files/or.csv")
-or_epa <- read.csv("/Users/VickiChang/Desktop/506 Data Files/or_epa.csv")
-```
-
-```{r}
+### Merge Census and EPA data for each OR
 or$county <- stringr::str_trim(or$county)
 or_full <- left_join(or[,-1], or_epa, by = "county")
 or_full <- or_full[,c(1:7,9,10)]
@@ -265,15 +359,18 @@ colnames(or_full)[which(colnames(or_full) == "year.x")] <- "year"
 ```
 
 ```{r}
-wa <- read.csv("/Users/VickiChang/Desktop/506 Data Files/wa.csv")
-wa_epa <- read.csv("/Users/VickiChang/Desktop/506 Data Files/wa_epa.csv")
-```
-
-```{r}
+### Merge Census and EPA data for each WA
 wa$county <- stringr::str_trim(wa$county)
 wa_full <- left_join(wa[,-1], wa_epa, by = "county")
 wa_full <- wa_full[,c(1:7,9,10)]
 colnames(wa_full)[which(colnames(wa_full) == "year.x")] <- "year"
+```
+
+```{r}
+### Output only distinct rows
+ca_full <- ca_full %>% distinct(.keep_all = TRUE)
+or_full <- or_full %>% distinct(.keep_all = TRUE)
+wa_full <- wa_full %>% distinct(.keep_all = TRUE)
 ```
 
 ```{r}
@@ -282,5 +379,3 @@ write.csv(or_full, "/Users/VickiChang/Desktop/or_full.csv")
 write.csv(wa_full, "/Users/VickiChang/Desktop/wa_full.csv")
 ```
 
-
- 
