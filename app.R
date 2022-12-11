@@ -20,23 +20,27 @@ library(tidyverse)
 ui <- fluidPage(theme = shinytheme("lumen"),
                           
     # Application title
-    titlePanel("Relationship between air pollutants, housing cost, and demographics"),
+    titlePanel("Relationship between air pollutants, election results, and demographics"),
 
     # Sidebar with a slider input for number of bins 
     sidebarLayout(
         sidebarPanel(
             ### User can specify one race
             ### There's a way to specify more than one race, but I don't know if we want to do that?
-            selectInput("race", "Demographic Group",
-                        choices = c("Total population", 
+          selectInput("choice", "What variable would you like to plot?",
+                      choices = c( 
+                        "Pollution", 
+                        "Election"),
+                      multiple = FALSE), 
+          selectInput("race", "Demographic Group",
+                        choices = c( 
                                     "White", 
                                     "Black or African American", 
                                     "American Indian and Alaska Native",
                                     "Asian",
                                     "Native Hawaiian and Other Pacific Islander",
                                     "Other",
-                                    "Two or more races",
-                                    "Hispanic latino"),
+                                    "Two or more races"),
                         multiple = FALSE),
             ### Users can specify one pollutant
             selectInput("pollutant", "Pollutant",
@@ -59,10 +63,10 @@ ui <- fluidPage(theme = shinytheme("lumen"),
 
         # Show a plot of the generated distribution
         mainPanel(
-                  # fluidRow(
-                  #   splitLayout(cellWidths = c("50%", "50%"), plotOutput("plot1"), plotOutput("plot1"))
-                  # )
-          plotOutput("plot1")
+                  fluidRow(
+                    splitLayout(cellWidths = c("50%", "50%"), plotOutput("plot1"), plotOutput("plot3"))
+                  )
+          # plotOutput("plot3")
 
         )
     )
@@ -95,11 +99,55 @@ server <- function(input, output, session) {
       population_data <- data_list()[[1]]%>%filter(race == input$race)
       g <- ggplot(population_data, aes(fill = race_proportion, geometry = geometry))
       g + geom_sf() +
-        #labs(fill = "Total population", title = paste("Total population of", unique(population_data()$race), "for", unique(population_data()$state), "in", unique(population_data()$year)))+
+        labs(fill = "% of the population", title = paste(unique(population_data$race),"Demographics For", unique(input$state), "For", unique(input$year), "By County"))+
         scale_fill_viridis_c(option = "plasma")+
         theme_minimal()
 
     })
+    
+    # output$plot2 <- renderPlot({
+    #   # req(population_data())
+    #   req(data_list())
+    #   pollution_data <- data_list()[[2]]%>%filter(pollutant == input$pollutant)
+    #   g <- ggplot(pollution_data, aes(fill = mean_conc, geometry = geometry))
+    #   g + geom_sf() +
+    #     labs(fill = "Pollutant Concentration", title = paste(unique(pollution_data$pollutant),"Concentrations For", unique(input$state), "For", unique(input$year), "By County"))+
+    #     scale_fill_viridis_c(option = "inferno")+
+    #     theme_minimal()
+    #   
+    # })
+    # 
+    output$plot3 <- renderPlot({
+      # req(population_data())
+      req(data_list())
+      list_index <- ifelse(input$choice == "Pollution", 2, 3)
+      if (list_index == 3){
+        election_data <- data_list()[[3]]%>%filter(party == input$party)
+        if (input$party == "Democrat"){
+          high_color = "blue"
+          low_color = "red"
+        }
+        if (input$party == "Republican"){
+          high_color = "red"
+          low_color = "blue"
+        }
+        g <- ggplot(election_data, aes(fill = vote_percent, geometry = geometry))
+        g + geom_sf() +
+          labs(fill = "% of the Vote", title = paste(unique(election_data$party),"Percent of Vote In", unique(input$state), "By County"))+
+          scale_fill_gradient2(low=low_color, midpoint = 0.5, high=high_color)+
+          theme_minimal()}
+      else{
+        pollution_data <- data_list()[[2]]%>%filter(pollutant == input$pollutant)
+        g <- ggplot(pollution_data, aes(fill = mean_conc, geometry = geometry))
+        g + geom_sf() +
+          labs(fill = "Pollutant Concentration", title = paste(unique(pollution_data$pollutant),"Concentrations For", unique(input$state), "For", unique(input$year), "By County"))+
+          scale_fill_viridis_c(option = "inferno")+
+          theme_minimal()
+      }
+      
+    })
+    
+    # output$plot4 <- ifelse(reactive({input$choices}) == "Pollution", output$plot2, output$plot3)
     
   # output$plot2 <- renderPlot({
   #   # req(population_data())
