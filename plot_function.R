@@ -1,4 +1,6 @@
 plot_function <- function(year, state, email = "seegerab@umich.edu", key = "greengazelle94"){
+  library(stringr)
+  
   if (!is.numeric(year)){
     stop("Year must be a numeric value, not a character.")
   }
@@ -181,7 +183,19 @@ plot_function <- function(year, state, email = "seegerab@umich.edu", key = "gree
   
   election_data <- left_join(extract_election_pres(year, state), county_geometry, by = "county")
   
+  election_data$party <- str_to_title(election_data$party)
+  
+  pollution_data$pollutant <- str_to_title(pollution_data$pollutant)
+  
+  
+  
   return(list(population_data, pollution_data, election_data))
   
   
 }
+
+test <- plot_function(2012, "CA")
+
+pop <- test[[1]]
+pol <- test[[2]]
+election <- test[[3]]
