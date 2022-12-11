@@ -42,7 +42,7 @@ extract_election_house <- function(year_input, state_input){
 ### Test the function
 test <- extract_election(2014, "CALIFORNIA")
 
-ggplot(data = extract_election(2020, "CALIFORNIA")%>%filter(party == "DEMOCRAT"), aes(geometry = geometry))+
+ggplot(data = extract_election(2020, "CA")%>%filter(party == "DEMOCRAT"), aes(geometry = geometry))+
   geom_sf(aes(fill=vote_prop))+
   labs(fill = "Percent of the vote the\nDemocratic candidate recieved", title = "2012 U.S. House of Representatives Results")+
   scale_fill_gradient2(low="red", midpoint = 0.5, high="blue")+
@@ -72,3 +72,16 @@ extract_election_pres <- function(year_input, state_input){
 }
 
 test <- extract_election_pres(2000, "CA")
+
+
+list <- reactive({
+  
+  all_data <- plot_function(as.numeric(input$year), input$state)
+  
+  pollution <- all_data[[2]]%>%filter(pollutant == input$pollutant)
+  election <- all_data[[3]]%>%filter(party == input$party)
+
+  return(list())
+})
+
+df1 <- list[[1]]
