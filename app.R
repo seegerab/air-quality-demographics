@@ -5,12 +5,14 @@
 # Find out more about building applications with Shiny here:
 #
 #    http://shiny.rstudio.com/
-#
+# 
 
 library(shiny)
 library(shinythemes)
 library(viridis)
 library(sf)
+
+
 
 
 # Define UI for application that draws a histogram
@@ -26,18 +28,18 @@ ui <- fluidPage(theme = shinytheme("lumen"),
             ### There's a way to specify more than one race, but I don't know if we want to do that?
             selectInput("race", "Demographic Group",
                         choices = c("Total population", 
-                                    "Total White alone", 
-                                    "Total Black or African American alone", 
-                                    "Total American Indian and Alaska Native alone",
-                                    "Total Asian alone",
-                                    "Total Native Hawaiian and Other Pacific Islander alone",
-                                    "Total some other race alone",
-                                    "Total two or more races",
-                                    "Total hispanic latino"),
+                                    "White", 
+                                    "Black or African American", 
+                                    "American Indian and Alaska Native",
+                                    "Asian",
+                                    "Native Hawaiian and Other Pacific Islander",
+                                    "Other",
+                                    "Two or more races",
+                                    "Hispanic latino"),
                         multiple = FALSE),
             ### Users can specify one pollutant
             selectInput("pollutant", "Pollutant",
-                        choices = c("pm25", "CO2", "Ozone", "Other Pollutants Here..."),
+                        choices = c("Pm25" , "Ozone", "Co", "So2", "Pm10", "No2"),
                         multiple = FALSE),
             selectInput("state", "State",
                         choices = c("CA", "WA", "OR"),
@@ -45,6 +47,10 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                         multiple = FALSE),
             selectInput("year", "Year",
                         choices = c("2012","2016","2020"),
+                        ### May want to include a select multiple option later
+                        multiple = FALSE),
+            selectInput("party", "Party",
+                        choices = c("Democrat", "Republican"),
                         ### May want to include a select multiple option later
                         multiple = FALSE),
             
@@ -69,35 +75,41 @@ server <- function(input, output, session) {
     # output$state <- reactive(input$state)
     
     
-    population_data <- reactive({
-      return(population_func(as.numeric(input$year), input$state)%>%
-               filter(race == input$race))
+  data_list<- reactive({
+      all_data <- plot_function(as.numeric(input$year), input$state)
       ### Do something here to connect the input with the actual name of the race in the data
-      
-    })
-    
-    
-    
-    output$plot1 <- renderPlot({
-      req(population_data())
-      g <- ggplot(population_data(), aes(fill = estimate, geometry = geometry))
-      g + geom_sf() +   
-        labs(fill = "Total population", title = paste("Total population of", unique(population_data()$race), "for", unique(population_data()$state), "in", unique(population_data()$year)))+
-        scale_fill_viridis_c(option = "plasma")+
-        theme_minimal()
+      population_data<- all_data[[1]] %>% filter(race == input$race) 
+      return(list(population_data))
+      })
+    # election_data <- all_data[[3]]%>%filter(party== input$party)
+    # pollutation_data<-all_data[[2]]%>%filter(pollutant== input$pollutant)
+ #population_alone <- data_list()[[1]]
 
-    })
     
-    # output$plot2 <- renderPlot({
-    #   req(population_data())
-    #   g <- ggplot(population_data(), aes(fill = #the fill needs to be the specified pollutant, geometry = geometry))
+    
+    
+    # output$plot1 <- renderPlot({
+    #  # req(population_data())
+    #   req(data_list)
+    #   g <- ggplot(data_list()[[1]], aes(fill = race_proportion, geometry = geometry))
     #   g + geom_sf() +   
-    #     labs(fill = "Total population", title = paste("Total population of", unique(population_data()$race), "for", unique(population_data()$state), "in", unique(population_data()$year)))+
+    #     #labs(fill = "Total population", title = paste("Total population of", unique(population_data()$race), "for", unique(population_data()$state), "in", unique(population_data()$year)))+
     #     scale_fill_viridis_c(option = "plasma")+
     #     theme_minimal()
-    #   
-    # })
     # 
+    # })
+    
+  output$plot2 <- renderPlot({
+    # req(population_data())
+    req(data_list)
+    g <- ggplot(data_list()[[2]], aes(fill = mean_conc, geometry = geometry))
+    g + geom_sf() +   
+      #labs(fill = "Total population", title = paste("Total population of", unique(population_data()$race), "for", unique(population_data()$state), "in", unique(population_data()$year)))+
+      scale_fill_viridis_c(option = "plasma")+
+      theme_minimal()
+    
+  })
+
   
 
 }
@@ -105,7 +117,6 @@ server <- function(input, output, session) {
 # Run the application 
 shinyApp(ui = ui, server = server)
 
-test<-population_func(2010, "CA")
 
 
 ### To Do

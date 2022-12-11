@@ -194,8 +194,3 @@ plot_function <- function(year, state, email = "seegerab@umich.edu", key = "gree
   
 }
 
-test <- plot_function(2012, "CA")
-
-pop <- test[[1]]
-pol <- test[[2]]
-election <- test[[3]]
