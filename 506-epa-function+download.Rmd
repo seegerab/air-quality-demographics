@@ -110,7 +110,8 @@ new_df <- df %>%
 
 new_df <- new_df %>% select(county, mean_conc_year, highest_conc, year)
 
-head(new_df,10)}
+# head(new_df,10)
+}
 ```
 
 ```{r warning=FALSE, message=FALSE}

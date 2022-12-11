@@ -88,16 +88,16 @@ server <- function(input, output, session) {
 
     })
     
-    output$plot2 <- renderPlot({
-      req(population_data())
-      g <- ggplot(population_data(), aes(fill = estimate, geometry = geometry))
-      g + geom_sf() +   
-        labs(fill = "Total population", title = paste("Total population of", unique(population_data()$race), "for", unique(population_data()$state), "in", unique(population_data()$year)))+
-        scale_fill_viridis_c(option = "plasma")+
-        theme_minimal()
-      
-    })
-    
+    # output$plot2 <- renderPlot({
+    #   req(population_data())
+    #   g <- ggplot(population_data(), aes(fill = #the fill needs to be the specified pollutant, geometry = geometry))
+    #   g + geom_sf() +   
+    #     labs(fill = "Total population", title = paste("Total population of", unique(population_data()$race), "for", unique(population_data()$state), "in", unique(population_data()$year)))+
+    #     scale_fill_viridis_c(option = "plasma")+
+    #     theme_minimal()
+    #   
+    # })
+    # 
   
 
 }
@@ -121,7 +121,7 @@ test<-population_func(2010, "CA")
 
 ### Abigail 
 
-### Change year to 2012, 2016, 2020 
+### Change year to 2012, 2016, 2020 DONE 
 
 ### Three plots 
 
