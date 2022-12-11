@@ -342,7 +342,7 @@ wa_epa <- rbind(wa_2012, wa_2016, wa_2020)
 ```
 
 ```{r}
-### Merge Census and EPA data for each CA
+### Merge Census and EPA data for CA
 ca <- ca[,-1]
 ca$county <- stringr::str_trim(ca$county)
 ca_full <- left_join(ca, ca_epa, by = "county")
@@ -351,7 +351,7 @@ colnames(ca_full)[which(colnames(ca_full) == "year.x")] <- "year"
 ```
 
 ```{r}
-### Merge Census and EPA data for each OR
+### Merge Census and EPA data for OR
 or$county <- stringr::str_trim(or$county)
 or_full <- left_join(or[,-1], or_epa, by = "county")
 or_full <- or_full[,c(1:7,9,10)]
@@ -359,7 +359,7 @@ colnames(or_full)[which(colnames(or_full) == "year.x")] <- "year"
 ```
 
 ```{r}
-### Merge Census and EPA data for each WA
+### Merge Census and EPA data for WA
 wa$county <- stringr::str_trim(wa$county)
 wa_full <- left_join(wa[,-1], wa_epa, by = "county")
 wa_full <- wa_full[,c(1:7,9,10)]
