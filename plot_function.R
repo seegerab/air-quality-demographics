@@ -1,6 +1,18 @@
 plot_function <- function(year, state, email = "seegerab@umich.edu", key = "greengazelle94"){
   library(stringr)
-  
+  library(tidyverse)
+  library(sf)
+  library(tigris)
+  library(tidycensus)
+  library(dplyr)
+  library(tidycensus)
+  library(tidyverse)
+  library(stringr)
+  library(jsonlite)
+  library(ggplot2) 
+  library(maps)
+  library(usmap)
+  library(RAQSAPI)
   if (!is.numeric(year)){
     stop("Year must be a numeric value, not a character.")
   }
@@ -83,76 +95,140 @@ plot_function <- function(year, state, email = "seegerab@umich.edu", key = "gree
   
 
   
-  pollution_function <- function(year, state){
-    if (state == "CA"){
-      state_code <- "06"
-    }
-    if (state == "OR"){
-      state_code <- "41"
-    }
-    if (state == "WA"){
-      state_code <- "53"
-    }
+  # pollution_function <- function(year, state){
+  #   if (state == "CA"){
+  #     state_code <- "06"
+  #   }
+  #   if (state == "OR"){
+  #     state_code <- "41"
+  #   }
+  #   if (state == "WA"){
+  #     state_code <- "53"
+  #   }
+  # 
+  #   
+  #   
+  #   all_pollutants = c("ozone","so2","co","no2","pm25.frm","pm25","pm10")
+  #   # 
+  #   # if(pollutant=="ozone"){param="44201"}
+  #   # if(pollutant=="so2"){param="42401"}
+  #   # if(pollutant=="co"){param="42101"}
+  #   # if(pollutant=="no2"){param="42602"}
+  #   # if(pollutant=="pm25.frm"){param="88101"}
+  #   # if(pollutant=="pm25"){param="88502"}
+  #   # if(pollutant=="pm10"){param="81102"}
+  #   
+  #   all_data <- data.frame(matrix(nrow = 0, ncol = 37))
+  #   for (pollutant in all_pollutants){
+  #     if(pollutant=="ozone"){param="44201"}
+  #     if(pollutant=="so2"){param="42401"}
+  #     if(pollutant=="co"){param="42101"}
+  #     if(pollutant=="no2"){param="42602"}
+  #     if(pollutant=="pm25.frm"){param="88101"}
+  #     if(pollutant=="pm25"){param="88502"}
+  #     if(pollutant=="pm10"){param="81102"}
+  #     # print(pollutant)
+  #     URL <- paste0("https://aqs.epa.gov/data/api/dailyData/byState?",
+  #                   "email=", email,"&",
+  #                   "key=", key ,"&", 
+  #                   "param=", param,"&", 
+  #                   "bdate=", year,"0101&",
+  #                   "edate=", year,"1231&",
+  #                   "state=", state_code)
+  #     if (param == "44201"){
+  #       colnames(all_data) <- colnames(data.frame(fromJSON(URL)))}
+  #     partial_data <- data.frame(fromJSON(URL), row.names = NULL)
+  #     partial_data$pollutant <- rep(pollutant, nrow(partial_data))
+  #     all_data <- rbind(all_data, partial_data, row.names = NULL)
+  #     
+  #   }
+  #   
+  #   df <- subset(all_data, select = c(5:ncol(all_data)))
+  #   colnames(df) <- gsub("Data.", "", colnames(df), fixed=TRUE)
+  #   df$year <- format(as.Date(df$date_local, format="%Y-%m-%d"),"%Y")
+  #   # return(colnames(df))
+  #   # Arithmetic Mean (Daily)- The measure of central tendency obtained from the sum of the observed pollutant data values in the daily data set divided by the number of values that comprise the sum for the daily data set.
+  #   
+  #   new_df <- df %>%
+  #     group_by(county, year, pollutant) %>%
+  #     summarize(mean_aqi = mean(aqi, na.rm = TRUE),
+  #               mean_conc = mean(arithmetic_mean, na.rm = TRUE))
+  # 
+  #   # return(new_df)
+  #   # # Creating AQI categories
+  #   new_df$aqi_cat <- as.factor(
+  #     ifelse(new_df$mean_aqi >= 0 & new_df$mean_aqi <= 50, "Good",
+  #            ifelse(new_df$mean_aqi >= 51 & new_df$mean_aqi <= 100, "Moderate",
+  #                   ifelse(new_df$mean_aqi >= 101 & new_df$mean_aqi <= 150, "Unhealthy for Sensitive Groups",
+  #                          ifelse(new_df$mean_aqi >= 151 & new_df$mean_aqi <= 200, "Unhealthy",
+  #                                 ifelse(new_df$mean_aqi > 201 & new_df$mean_aqi <= 300, "Very Unhealthy",
+  #                                        ifelse(new_df$mean_aqi >= 301 & new_df$mean_aqi <= 500, "Hazardous",0)))))))
+  # 
+  #   new_df <- new_df %>% select(county, mean_conc, mean_aqi, aqi_cat, year, pollutant)
+  #   return(new_df)
+  # }
+  
+  
+  pollution_function <- function(year,state){
+      if (state == "CA"){
+        state_code <- "06"
+      }
+      if (state == "OR"){
+        state_code <- "41"
+      }
+      if (state == "WA"){
+        state_code <- "53"
+      }
 
-    all_pollutants = c("ozone","so2","co","no2","pm25.frm","pm25","pm10")
-    # 
-    # if(pollutant=="ozone"){param="44201"}
-    # if(pollutant=="so2"){param="42401"}
-    # if(pollutant=="co"){param="42101"}
-    # if(pollutant=="no2"){param="42602"}
-    # if(pollutant=="pm25.frm"){param="88101"}
-    # if(pollutant=="pm25"){param="88502"}
-    # if(pollutant=="pm10"){param="81102"}
     
-    all_data <- data.frame(matrix(nrow = 0, ncol = 37))
-    for (pollutant in all_pollutants){
-      if(pollutant=="ozone"){param="44201"}
-      if(pollutant=="so2"){param="42401"}
-      if(pollutant=="co"){param="42101"}
-      if(pollutant=="no2"){param="42602"}
-      if(pollutant=="pm25.frm"){param="88101"}
-      if(pollutant=="pm25"){param="88502"}
-      if(pollutant=="pm10"){param="81102"}
-      # print(pollutant)
-      URL <- paste0("https://aqs.epa.gov/data/api/dailyData/byState?",
-                    "email=", email,"&",
-                    "key=", key ,"&", 
-                    "param=", param,"&", 
-                    "bdate=", year,"0101&",
-                    "edate=", year,"0101&",
-                    "state=", state_code)
-      if (param == "44201"){
-        colnames(all_data) <- colnames(data.frame(fromJSON(URL)))}
-      partial_data <- data.frame(fromJSON(URL), row.names = NULL)
-      partial_data$pollutant <- rep(pollutant, nrow(partial_data))
-      all_data <- rbind(all_data, partial_data, row.names = NULL)
-      
-    }
+      all_pollutants = c("ozone","so2","co","no2","pm25","pm10")
     
-    df <- subset(all_data, select = c(5:ncol(all_data)))
-    colnames(df) <- gsub("Data.", "", colnames(df), fixed=TRUE)
-    df$year <- format(as.Date(df$date_local, format="%Y-%m-%d"),"%Y")
-    # return(colnames(df))
-    # Arithmetic Mean (Daily)- The measure of central tendency obtained from the sum of the observed pollutant data values in the daily data set divided by the number of values that comprise the sum for the daily data set.
-    
-    new_df <- df %>%
-      group_by(county, year, pollutant) %>%
-      summarize(mean_aqi = mean(aqi, na.rm = TRUE),
-                mean_conc = mean(arithmetic_mean))
+      all_data <- data.frame(matrix(nrow = 0, ncol = 61))
+      print(dim(all_data))
+      for (pollutant in all_pollutants){
+        if(pollutant=="ozone"){param="44201"}
+        if(pollutant=="so2"){param="42401"}
+        if(pollutant=="co"){param="42101"}
+        if(pollutant=="no2"){param="42602"}
+        if(pollutant=="pm25"){param="88502"}
+        if(pollutant=="pm10"){param="81102"}
+        # print(pollutant)
+        URL <- paste0("https://aqs.epa.gov/data/api/annualData/byState?",
+                      "email=", email,"&",
+                      "key=", key ,"&",
+                      "param=", param,"&",
+                      "bdate=", year,"0101&",
+                      "edate=", year,"1231&",
+                      "state=", state_code)
+        if (param == "44201"){
+          colnames(all_data) <- colnames(data.frame(fromJSON(URL)))}
+        partial_data <- data.frame(fromJSON(URL), row.names = NULL)
+        partial_data$pollutant <- rep(pollutant, nrow(partial_data))
+        print(dim(partial_data))
+        all_data <- rbind(all_data, partial_data, row.names = NULL)
 
-    # return(new_df)
-    # # Creating AQI categories
-    new_df$aqi_cat <- as.factor(
-      ifelse(new_df$mean_aqi >= 0 & new_df$mean_aqi <= 50, "Good",
-             ifelse(new_df$mean_aqi >= 51 & new_df$mean_aqi <= 100, "Moderate",
-                    ifelse(new_df$mean_aqi >= 101 & new_df$mean_aqi <= 150, "Unhealthy for Sensitive Groups",
-                           ifelse(new_df$mean_aqi >= 151 & new_df$mean_aqi <= 200, "Unhealthy",
-                                  ifelse(new_df$mean_aqi > 201 & new_df$mean_aqi <= 300, "Very Unhealthy",
-                                         ifelse(new_df$mean_aqi >= 301 & new_df$mean_aqi <= 500, "Hazardous",0)))))))
-
-    new_df <- new_df %>% select(county, mean_conc, mean_aqi, aqi_cat, year, pollutant)
-    return(new_df)
+      }
+        df <- subset(all_data, select = c(5:ncol(all_data)))
+        print(head(df))
+        colnames(df) <- gsub("Data.", "", colnames(df), fixed=TRUE)
+        # df$year <- format(as.Date(df$date_local, format="%Y-%m-%d"),"%Y")
+        # return(colnames(df))
+        df <- df%>%
+          group_by(county, year, pollutant)%>%
+          summarize(mean_conc = mean(arithmetic_mean))%>%
+          select(county, mean_conc, year, pollutant)%>%
+          distinct()
+        
+        return(df)
+        
   }
+    
+    # For annual data, only the year portion of the bdate and edate are used and only whole years of data are returned. For example, bdate = 20171231 and edate = 20180101 will return full data for 2017 and 2018
+    
+    
+  
+  
+  
   
   data <- read.csv("countypres_2000-2020.csv")
   
@@ -193,4 +269,35 @@ plot_function <- function(year, state, email = "seegerab@umich.edu", key = "gree
   
   
 }
+
+test <- plot_function(2012, "CA")
+pollution <- test[[2]]
+
+pollution%>%
+  group_by(county)
+
+
+# if(pollutant=="ozone"){param="44201"}
+# if(pollutant=="so2"){param="42401"}
+# if(pollutant=="co"){param="42101"}
+# if(pollutant=="no2"){param="42602"}
+# if(pollutant=="pm25.frm"){param="88101"}
+# if(pollutant=="pm25"){param="88502"}
+# if(pollutant=="pm10"){param="81102"}
+
+
+email <- "seegerab@umich.edu"
+key <- "greengazelle94"
+param <- "42602"
+year <- 2012
+state_code <- "06"
+URL <- paste0("https://aqs.epa.gov/data/api/dailyData/byState?",
+              "email=", email,"&",
+              "key=", key ,"&", 
+              "param=", param,"&", 
+              "bdate=", year,"0101&",
+              "edate=", year,"1231&",
+              "state=", state_code)
+partial_data <- data.frame(fromJSON(URL), row.names = NULL)
+unique(partial_data$Data.county)
 
