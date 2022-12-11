@@ -11,6 +11,7 @@ library(shiny)
 library(shinythemes)
 library(viridis)
 library(sf)
+library(tidyverse)
 
 
 
@@ -78,37 +79,38 @@ server <- function(input, output, session) {
   data_list<- reactive({
       all_data <- plot_function(as.numeric(input$year), input$state)
       ### Do something here to connect the input with the actual name of the race in the data
-      population_data<- all_data[[1]] %>% filter(race == input$race) 
-      return(list(population_data))
+      # population_data<- all_data[[1]] %>% filter(race == input$race) 
+      return(all_data)
       })
     # election_data <- all_data[[3]]%>%filter(party== input$party)
     # pollutation_data<-all_data[[2]]%>%filter(pollutant== input$pollutant)
  #population_alone <- data_list()[[1]]
 
+    # population_data <- 
     
+
+    output$plot1 <- renderPlot({
+     # req(population_data())
+      req(data_list())
+      population_data <- data_list()[[1]]%>%filter(race == input$race)
+      g <- ggplot(population_data, aes(fill = race_proportion, geometry = geometry))
+      g + geom_sf() +
+        #labs(fill = "Total population", title = paste("Total population of", unique(population_data()$race), "for", unique(population_data()$state), "in", unique(population_data()$year)))+
+        scale_fill_viridis_c(option = "plasma")+
+        theme_minimal()
+
+    })
     
-    
-    # output$plot1 <- renderPlot({
-    #  # req(population_data())
-    #   req(data_list)
-    #   g <- ggplot(data_list()[[1]], aes(fill = race_proportion, geometry = geometry))
-    #   g + geom_sf() +   
-    #     #labs(fill = "Total population", title = paste("Total population of", unique(population_data()$race), "for", unique(population_data()$state), "in", unique(population_data()$year)))+
-    #     scale_fill_viridis_c(option = "plasma")+
-    #     theme_minimal()
-    # 
-    # })
-    
-  output$plot2 <- renderPlot({
-    # req(population_data())
-    req(data_list)
-    g <- ggplot(data_list()[[2]], aes(fill = mean_conc, geometry = geometry))
-    g + geom_sf() +   
-      #labs(fill = "Total population", title = paste("Total population of", unique(population_data()$race), "for", unique(population_data()$state), "in", unique(population_data()$year)))+
-      scale_fill_viridis_c(option = "plasma")+
-      theme_minimal()
-    
-  })
+  # output$plot2 <- renderPlot({
+  #   # req(population_data())
+  #   req(data_list)
+  #   g <- ggplot(data_list()[[2]], aes(fill = mean_conc, geometry = geometry))
+  #   g + geom_sf() +   
+  #     #labs(fill = "Total population", title = paste("Total population of", unique(population_data()$race), "for", unique(population_data()$state), "in", unique(population_data()$year)))+
+  #     scale_fill_viridis_c(option = "plasma")+
+  #     theme_minimal()
+  #   
+  # })
 
   
 
