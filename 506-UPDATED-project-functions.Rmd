@@ -57,7 +57,7 @@ race_codes <- all_races[,1]
 ### These are the variables we want to select from the Census API 
 race_codes <- as.vector(unlist(race_codes))
 ```
-
+# Population Function
 
 ```{r}
 ### Have the function accept a variable number of years
@@ -67,12 +67,10 @@ population_func <- function(year, state){
   if (!is.numeric(year)){
     stop("Year must be a numeric value, not a character.")
   }
-  
   ### Verify that the year is between 2005 and 2021
   if (year < 2005 | year > 2021){
     stop("American Community Survey Data is only available between 2005 and 2020.")
   }
-  
   ### Check that state is a character
   if (!is.character(state)){
     stop("State must be a character.")
@@ -93,36 +91,35 @@ population_func <- function(year, state){
                  "B02001_001",
                  "B03002_001")
    ### Use the acs survey, not the decenniel survey
-   
    data <- get_acs(geography = "county", 
                 variables = c(race_var), 
                 year = year, 
                 state = state,
                 geometry = TRUE)
- 
    ### Create a column with the demographic group
    data$race <- case_when(
-     data$variable == "B02001_002" ~ "White",
-     data$variable == "B02001_003" ~ "Black or African American",
-     data$variable == "B02001_004" ~ "American Indian and Alaska Native",
-    data$variable == "B02001_005" ~ "Asian",
-     data$variable == "B02001_006" ~ "Native Hawaiian and Other Pacific Islander",
-     data$variable == "B02001_007" ~ "Other",
-     data$variable == "B02001_008" ~ "Two or more races",
+     data$variable == "B02001_002" ~ "Total White alone",
+     data$variable == "B02001_003" ~ "Total Black or African American alone",
+     data$variable == "B02001_004" ~ "Total American Indian and Alaska Native alone",
+    data$variable == "B02001_005" ~ "Total Asian alone",
+     data$variable == "B02001_006" ~ "Total Native Hawaiian and Other Pacific Islander alone",
+     data$variable == "B02001_007" ~ "Total some other race alone",
+     data$variable == "B02001_008" ~ "Total two or more races",
      data$variable == "B02001_001" ~ "Total population",
-     data$variable == "B03002_001" ~ "Hispanic latino"
+     data$variable == "B03002_001" ~ "Total hispanic latino"
    )
-   
    geometry <- as.data.frame(data%>%select(c(geometry, GEOID, NAME)))
-
+   #print(head(geometry))
+   
    data <- as.data.frame(data)
    total_population <- data%>%filter(race == "Total population")
    data <- left_join(data, total_population, by = "GEOID")
-     data <- data %>%
+   data <- data %>%
       select(c(GEOID, estimate.x, estimate.y, race.x))%>%
       ### Create a new variable that is the proportion of each race
       mutate(race_prop = estimate.x / estimate.y)
-    colnames(data) <- c("GEOID", "population", "total_population", "race", "race_proportion")
+    colnames(data) <- c("GEOID", "population", "total_population", 
+                        "race", "race_proportion")
     data <- merge(data, geometry, by = "GEOID", all.x=TRUE)
     total_population <- data %>% filter(race == "Total population")
     data <- left_join(data, total_population, by = "GEOID")
@@ -132,16 +129,57 @@ population_func <- function(year, state){
     data$year <- rep(year, nrow(data)) 
     data <- data[,c("GEOID", "population.x", "total_population.x", "race.x", "race_proportion.x", "NAME.x", "year")] # take out geometry.x
     colnames(data) <- c("GEOID", "population", "total_population", "race", "race_proportion", "NAME", "year")
-    data$county <- sapply(strsplit(data$NAME, " County"), "[[", 1)
-    data <- left_join(data, geometry, by = "GEOID")
-    ### Need to figure out why some rows are duplicating
-   return(distinct(data))
-   }
-
+   return(data)}
 ```
 
 ```{r message=FALSE}
-california_2012_census <- population_func(2012, "CA")
+### Call function to get data for California in 2012, 2016, and 2020
+ca1 <- population_func(2012, "CA")
+### Create a county variable that does not include state name. Will be used to merge population data with EPA data
+ca1$county <- substr(ca1$NAME,1,nchar(ca1$NAME)-18)
+
+ca2 <- population_func(2016, "CA")
+ca2$county <- substr(ca2$NAME,1,nchar(ca2$NAME)-18)
+
+
+ca3 <- population_func(2020, "CA")
+ca3$county <- substr(ca3$NAME,1,nchar(ca3$NAME)-18)
+
+ca <- rbind(ca1,ca2,ca3)
+write.csv(ca, "/Users/VickiChang/Desktop/ca.csv")
+```
+
+```{r message=FALSE}
+### Call function to get data for Oregon in 2012, 2016, and 2020
+or1 <- population_func(2012, "OR")
+### Create a county variable that does not include state name. Will be used to merge population data with EPA data
+or1$county <- substr(or1$NAME,1,nchar(or1$NAME)-14)
+
+or2 <- population_func(2016, "CA")
+or2$county <- substr(or2$NAME,1,nchar(or2$NAME)-14)
+
+
+or3 <- population_func(2020, "CA")
+or3$county <- substr(or3$NAME,1,nchar(or3$NAME)-14)
+
+or <- rbind(or1,or2,or3)
+write.csv(or, "/Users/VickiChang/Desktop/or.csv")
+```
+  
+```{r message=FALSE}
+### Call function to get data for Washington in 2012, 2016, and 2020
+wa1 <- population_func(2012, "WA")
+### Create a county variable that does not include state name. Will be used to merge population data with EPA data
+wa1$county <- substr(wa1$NAME,1,nchar(wa1$NAME)-18)
+
+wa2 <- population_func(2016, "WA")
+wa2$county <- substr(wa2$NAME,1,nchar(wa2$NAME)-18)
+
+wa3 <- population_func(2020, "WA")
+wa3$county <- substr(wa3$NAME,1,nchar(wa3$NAME)-18)
+
+wa <- rbind(wa1,wa2,wa3)
+write.csv(wa, "/Users/VickiChang/Desktop/wa.csv")
 ```
 
 # EPA Function
