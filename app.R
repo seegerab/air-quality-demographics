@@ -44,7 +44,7 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                         ### May want to include a select multiple option later
                         multiple = FALSE),
             selectInput("year", "Year",
-                        choices = c("2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020"),
+                        choices = c("2012","2016","2020"),
                         ### May want to include a select multiple option later
                         multiple = FALSE),
             
@@ -82,10 +82,20 @@ server <- function(input, output, session) {
       req(population_data())
       g <- ggplot(population_data(), aes(fill = estimate, geometry = geometry))
       g + geom_sf() +   
-        labs(fill = "Total population", title = paste("Total population of", unique(population_data()$race), "for", unique(population_data()$state)))+
+        labs(fill = "Total population", title = paste("Total population of", unique(population_data()$race), "for", unique(population_data()$state), "in", unique(population_data()$year)))+
         scale_fill_viridis_c(option = "plasma")+
         theme_minimal()
 
+    })
+    
+    output$plot2 <- renderPlot({
+      req(population_data())
+      g <- ggplot(population_data(), aes(fill = estimate, geometry = geometry))
+      g + geom_sf() +   
+        labs(fill = "Total population", title = paste("Total population of", unique(population_data()$race), "for", unique(population_data()$state), "in", unique(population_data()$year)))+
+        scale_fill_viridis_c(option = "plasma")+
+        theme_minimal()
+      
     })
     
   
@@ -95,13 +105,16 @@ server <- function(input, output, session) {
 # Run the application 
 shinyApp(ui = ui, server = server)
 
+test<-population_func(2010, "CA")
+
 
 ### To Do
 
 ### Marley
 
-### Include year in the title of the plot
-### Figure out how to show two maps side-by-side
+### Include year in the title of the plot DONE
+### Figure out how to show two maps side-by-side -- can't do this until function is better/fixed? i think our
+# population function should output a dataframe with combined EPA and census data, with geoid included so i can plot it
 
 ### Replace "Total Black or African American alone" with "African American" in the function, or here in the Shiny App
 ### Replace state abbr. with the full name 
