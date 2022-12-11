@@ -42,4 +42,4 @@ The authors of this project are Abigail Seeger, Jordan Majoros, Marley Lund, and
 
 ## Project status
 
-As of November 11, 2022, this is a work in progress and is expected to be completed by December 15. 
+As of November 11, 2022, this is a work in progress and is expected to be completed by December 14. 
