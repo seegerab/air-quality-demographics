@@ -1,0 +1,234 @@
+---
+title: "finalSQL"
+author: "jmajoros"
+date: '2022-12-10'
+output: html_document
+---
+
+```{r, include = FALSE}
+library(tidycensus)
+library(sf)
+library(tigris)
+library(tidyverse)
+library(ggplot2)
+library(data.table)
+library(imager)
+library(dplyr)
+library(reader)
+library(data.table)
+library(RMySQL)
+library(DBI)
+library(RJDBC)
+library(stringr)
+```
+
+```{r, include = FALSE}
+host_name = "localhost"
+port_no = 3306
+db_name = "project"
+u_id = "root"
+pw = "REMOVED FOR SAKE OF TURNING IN"
+```
+
+```{r}
+mydrv <- dbDriver("MySQL")
+conn <- dbConnect(mydrv, 
+                  dbname = db_name, 
+                  host = host_name, 
+                  port = 3306,
+                  user = u_id, 
+                  password = pw)
+```
+
+
+```{r}
+dbSendQuery(conn, "SET GLOBAL local_infile = true;")
+#write into DBeaver 
+dbWriteTable(conn, "ca_full2", ca_full2, append = TRUE, row.names = FALSE)
+```
+
+```{r}
+dbSendQuery(conn, "SET GLOBAL local_infile = true;")
+
+dbWriteTable(conn, "or_full2", or_full2, append = TRUE, row.names = FALSE)
+```
+
+```{r}
+dbWriteTable(conn, "wa_full2", wa_full2, append = TRUE, row.names = FALSE)
+```
+
+```{r}
+unique(or_full2$parameter)
+```
+
+```{r}
+orpm25 = dbGetQuery(conn, 'SELECT DISTINCT NAME, highest_conc, parameter, year FROM or_full2
+                  WHERE parameter = "Acceptable PM2.5 AQI & Speciation Mass"
+                  ORDER BY highest_conc DESC
+                  LIMIT 3;')
+orpm25
+
+orpm25l = dbGetQuery(conn, 'SELECT DISTINCT NAME, highest_conc, parameter, year FROM or_full2
+                  WHERE parameter = "PM2.5 - Local Conditions"
+                  ORDER BY highest_conc DESC
+                  LIMIT 3;')
+orpm25l
+
+orpm10 = dbGetQuery(conn, 'SELECT DISTINCT NAME, highest_conc, parameter, year FROM or_full2
+                  WHERE parameter = "PM10 Total 0-10um STP"
+                  ORDER BY highest_conc DESC
+                  LIMIT 3;')
+orpm10
+
+orco = dbGetQuery(conn, 'SELECT DISTINCT NAME, highest_conc, parameter, year FROM or_full2
+                  WHERE parameter = "Carbon monoxide"
+                  ORDER BY highest_conc DESC
+                  LIMIT 3;')
+orco
+
+oroz = dbGetQuery(conn, 'SELECT DISTINCT NAME, highest_conc, parameter, year FROM or_full2
+                  WHERE parameter = "Ozone"
+                  ORDER BY highest_conc DESC
+                  LIMIT 3;')
+oroz
+
+orsd = dbGetQuery(conn, 'SELECT DISTINCT NAME, highest_conc, parameter, year FROM or_full2
+                  WHERE parameter = "Sulfur dioxide"
+                  ORDER BY highest_conc DESC
+                  LIMIT 3;')
+orsd
+
+ornd = dbGetQuery(conn, 'SELECT DISTINCT NAME, highest_conc, parameter, year FROM or_full2
+                  WHERE parameter = "Nitrogen dioxide (NO2)"
+                  ORDER BY highest_conc DESC
+                  LIMIT 3;')
+ornd
+# THE UNHEALTHY IS ONLY FOR LAKE COUNTY
+```
+
+```{r}
+unique(wa_full2$parameter)
+```
+
+```{r}
+wapm25 = dbGetQuery(conn, 'SELECT DISTINCT NAME, highest_conc, parameter FROM wa_full2
+                  WHERE parameter = "Acceptable PM2.5 AQI & Speciation Mass"
+                  ORDER BY highest_conc DESC
+                  LIMIT 3;')
+wapm25
+
+wapm25l = dbGetQuery(conn, 'SELECT DISTINCT NAME, highest_conc, parameter FROM wa_full2
+                  WHERE parameter = "PM2.5 - Local Conditions"
+                  ORDER BY highest_conc DESC
+                  LIMIT 3;')
+wapm25l
+
+wapm10 = dbGetQuery(conn, 'SELECT DISTINCT NAME, highest_conc, parameter FROM wa_full2
+                  WHERE parameter = "PM10 Total 0-10um STP"
+                  ORDER BY highest_conc DESC
+                  LIMIT 3;')
+wapm10
+
+waco = dbGetQuery(conn, 'SELECT DISTINCT NAME, highest_conc, parameter FROM wa_full2
+                  WHERE parameter = "Carbon monoxide"
+                  ORDER BY highest_conc DESC
+                  LIMIT 3;')
+waco
+
+waoz = dbGetQuery(conn, 'SELECT DISTINCT NAME, highest_conc, parameter FROM wa_full2
+                  WHERE parameter = "Ozone"
+                  ORDER BY highest_conc DESC
+                  LIMIT 3;')
+waoz
+
+wasd = dbGetQuery(conn, 'SELECT DISTINCT NAME, highest_conc, parameter FROM wa_full2
+                  WHERE parameter = "Sulfur dioxide"
+                  ORDER BY highest_conc DESC
+                  LIMIT 3;')
+wasd
+
+wand = dbGetQuery(conn, 'SELECT DISTINCT NAME, highest_conc, parameter FROM wa_full2
+                  WHERE parameter = "Nitrogen dioxide (NO2)"
+                  ORDER BY highest_conc DESC
+                  LIMIT 3;')
+wand
+# THE UNHEALTHY IS ONLY FOR LAKE COUNTY
+```
+
+```{r}
+unique(ca_full2$parameter)
+```
+
+```{r}
+capm25 = dbGetQuery(conn, 'SELECT DISTINCT NAME, highest_conc, parameter FROM ca_full2
+                  WHERE parameter = "Acceptable PM2.5 AQI & Speciation Mass"
+                  ORDER BY highest_conc DESC
+                  LIMIT 3;')
+capm25
+
+capm25l = dbGetQuery(conn, 'SELECT DISTINCT NAME, highest_conc, parameter FROM ca_full2
+                  WHERE parameter = "PM2.5 - Local Conditions"
+                  ORDER BY highest_conc DESC
+                  LIMIT 3;')
+capm25l
+
+capm10 = dbGetQuery(conn, 'SELECT DISTINCT NAME, highest_conc, parameter FROM ca_full2
+                  WHERE parameter = "PM10 Total 0-10um STP"
+                  ORDER BY highest_conc DESC
+                  LIMIT 3;')
+capm10
+
+caco = dbGetQuery(conn, 'SELECT DISTINCT NAME, highest_conc, parameter FROM ca_full2
+                  WHERE parameter = "Carbon monoxide"
+                  ORDER BY highest_conc DESC
+                  LIMIT 3;')
+caco
+
+caoz = dbGetQuery(conn, 'SELECT DISTINCT NAME, highest_conc, parameter FROM ca_full2
+                  WHERE parameter = "Ozone"
+                  ORDER BY highest_conc DESC
+                  LIMIT 3;')
+caoz
+
+casd = dbGetQuery(conn, 'SELECT DISTINCT NAME, highest_conc, parameter FROM ca_full2
+                  WHERE parameter = "Sulfur dioxide"
+                  ORDER BY highest_conc DESC
+                  LIMIT 3;')
+casd
+
+cand = dbGetQuery(conn, 'SELECT DISTINCT NAME, highest_conc, parameter FROM ca_full2
+                  WHERE parameter = "Nitrogen dioxide (NO2)"
+                  ORDER BY highest_conc DESC
+                  LIMIT 3;')
+cand
+# THE UNHEALTHY IS ONLY FOR LAKE COUNTY
+```
+
+```{r}
+dfca_meanaqi = dbGetQuery(conn, 'SELECT DISTINCT county, avg(mean_aqi) AS TOT_MEAN FROM ca_full2
+                          GROUP BY county
+                          ORDER BY TOT_MEAN DESC
+                          LIMIT 5;')
+dfca_meanaqi
+# THE UNHEALTHY FOR SENSITIVE IS FOR FRESNO, KERN, KINGS, MADERA, MERCED, ORANGE, SAN DIEGO, STANISLAUS, TRINITY, AND TULARE
+```
+
+```{r}
+dfor_meanaqi = dbGetQuery(conn, 'SELECT DISTINCT county, avg(mean_aqi) AS TOT_MEAN FROM or_full2
+                          GROUP BY county
+                          ORDER BY TOT_MEAN DESC
+                          LIMIT 5;')
+dfor_meanaqi
+# THE UNHEALTHY FOR SENSITIVE IS FOR FRESNO, KERN, KINGS, MADERA, MERCED, ORANGE, SAN DIEGO, STANISLAUS, TRINITY, AND TULARE
+```
+
+```{r}
+dfwa_meanaqi = dbGetQuery(conn, 'SELECT DISTINCT county, avg(mean_aqi) AS TOT_MEAN FROM wa_full2
+                          GROUP BY county
+                          ORDER BY TOT_MEAN DESC
+                          LIMIT 5;')
+dfwa_meanaqi
+# THE UNHEALTHY FOR SENSITIVE IS FOR FRESNO, KERN, KINGS, MADERA, MERCED, ORANGE, SAN DIEGO, STANISLAUS, TRINITY, AND TULARE
+```
+
+
