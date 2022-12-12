@@ -1,4 +1,6 @@
 #### Load in the necessary packages
+### These are the packages that are required for the .R scripts 
+### in the /src folder of the repository
 library(tidyverse)
 library(sf)
 library(tigris)

@@ -1,5 +1,17 @@
-library(tidycensus)
-library(tidyverse)
+##########################################################################
+### population_function.R includes code to extract the variable codes for the races 
+### we're interested in, as well as the function population_func
+###
+### population_func takes year (numeric) and state (a two-letter postal code, all capitalized)
+### as an input. It returns a dataframe with the percentage of each race for each county for the 
+### input year and state. The returned data frame includes a geometry variable, allowing the 
+### user to plot the data as a map in the future. 
+###
+##########################################################################
+
+
+### Load in the necessary packages
+source("packages.R")
 ### Get the variables for the ACS census; this is different from the decenniel data
 census_var_acs <- load_variables(year = 2010, dataset = 'acs5', cache=T)
 # All races except for hispanic or latino
@@ -25,29 +37,8 @@ all_races <- rbind(census_race1, total_hl) ###
 race_codes <- all_races[,1]
 ### These are the variables we want to select from the Census API 
 race_codes <- as.vector(unlist(race_codes))
-
 population_func <- function(year, state){
-  library(tidyverse)
-  library(tidycensus)
-  ### Error checking for the inputs 
-  ### Verify year is a numeric
-  if (!is.numeric(year)){
-    stop("Year must be a numeric value, not a character.")
-  }
-  ### Verify that the year is between 2005 and 2021
-  if (year < 2005 | year > 2021){
-    stop("American Community Survey Data is only available between 2005 and 2020.")
-  }
-  ### Check that state is a character
-  if (!is.character(state)){
-    stop("State must be a character.")
-  }
-  ### State must be a two-letter code, all caps
-  if (!state %in% state.abb){
-    stop("The state must be a two-letter code, with both letters capitalized.")
-  }
-  
-  ### These are the codes for the race variables; see above for how they were extracted from all variables
+  ### These are the codes for the race variables; see population_function.R for how these variables were extracted
   race_var <- c("B02001_002",
                 "B02001_003",
                 "B02001_004",
@@ -57,7 +48,7 @@ population_func <- function(year, state){
                 "B02001_008",
                 "B02001_001",
                 "B03002_001")
-  ### Use the acs survey, not the decenniel survey
+  ### Use the acs survey, not the decenniel survey, which has data for every year
   data <- get_acs(geography = "county", 
                   variables = c(race_var), 
                   year = year, 
@@ -65,20 +56,38 @@ population_func <- function(year, state){
                   geometry = TRUE)
   ### Create a column with the demographic group
   data$race <- case_when(
-    data$variable == "B02001_002" ~ "Total White alone",
-    data$variable == "B02001_003" ~ "Total Black or African American alone",
-    data$variable == "B02001_004" ~ "Total American Indian and Alaska Native alone",
-    data$variable == "B02001_005" ~ "Total Asian alone",
-    data$variable == "B02001_006" ~ "Total Native Hawaiian and Other Pacific Islander alone",
-    data$variable == "B02001_007" ~ "Total some other race alone",
-    data$variable == "B02001_008" ~ "Total two or more races",
+    data$variable == "B02001_002" ~ "White",
+    data$variable == "B02001_003" ~ "Black or African American",
+    data$variable == "B02001_004" ~ "American Indian and Alaska Native",
+    data$variable == "B02001_005" ~ "Asian",
+    data$variable == "B02001_006" ~ "Native Hawaiian and Other Pacific Islander",
+    data$variable == "B02001_007" ~ "Other",
+    data$variable == "B02001_008" ~ "Two or more races",
     data$variable == "B02001_001" ~ "Total population",
-    data$variable == "B03002_001" ~ "Total hispanic latino"
+    data$variable == "B03002_001" ~ "Hispanic latino"
   )
-  data$year <- rep(year, nrow(data))
-  data$state <- rep(state, nrow(data))
-  ### Extract county and state from the NAME variable here
+  ### Save the geometry variable as a data frame, along with GEOID and NAME 
+  geometry <- as.data.frame(data%>%select(c(geometry, GEOID, NAME)))
   
-  return(data)
-  
+  data <- as.data.frame(data)
+  ### Create a new data frame that is just the total population
+  total_population <- data%>%filter(race == "Total population")
+  ### Include the total_population as a column, joined by GEOID
+  data <- left_join(data, total_population, by = "GEOID")
+  data <- data %>%
+    select(c(GEOID, estimate.x, estimate.y, race.x))%>%
+    ### Create a new variable that is the proportion of each race
+    mutate(race_prop = estimate.x / estimate.y)
+  colnames(data) <- c("GEOID", "population", "total_population", "race", "race_proportion")
+  ### Include the geometry in the data
+  data <- merge(data, geometry, by = "GEOID", all.x=TRUE)
+  ### Include a variable with the year
+  data$year <- rep(year, nrow(data)) 
+  ### Filter to a subset of the columns
+  data <- data[,c("GEOID", "population.x", "total_population.x", "race.x", "race_proportion.x", "NAME.x", "year")] # take out geometry.x
+  colnames(data) <- c("GEOID", "population", "total_population", "race", "race_proportion", "NAME", "year")
+  ### Extract the county name
+  data$county <- sapply(strsplit(data$NAME, " County"), "[[", 1)
+  data <- left_join(data, geometry, by = "GEOID")
+  return(distinct(data))
 }
