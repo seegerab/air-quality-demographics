@@ -1,0 +1,13 @@
+#### Load in the necessary packages
+library(tidyverse)
+library(sf)
+library(tigris)
+library(dplyr)
+library(tidycensus)
+library(tidyverse)
+library(stringr)
+library(jsonlite)
+library(ggplot2) 
+library(maps)
+library(usmap)
+library(RAQSAPI)

@@ -1,14 +1,10 @@
 ### Read in the data from U.S. House 1976-2020 from https://electionlab.mit.edu/data
-data <- read.csv("1976-2020-house.csv")
+data <- read.csv("./data/1976-2020-house.csv")
 extract_election_house <- function(year_input, state_input){
-  ### Load in necessary packages
-  library(tidyverse)
-  library(sf)
-  library(tigris)
   ### Filter the data to only general elections that aren't
   ### special elections for the U.S. house and only the 
   ### Democratic and Republican parties
-  
+  source("packages.R")
   ### Bin all parties not DEMOCRAT or REPUBLICAN to OTHER
   data$party <- ifelse(data$party %in% c("DEMOCRAT", "REPUBLICAN"), data$party, "OTHER")
   total_district <- data%>%
@@ -40,16 +36,16 @@ extract_election_house <- function(year_input, state_input){
 }
 
 ### Test the function
-test <- extract_election(2014, "CALIFORNIA")
+house_data_CA <- extract_election_house(2020, "CALIFORNIA")
 
-ggplot(data = extract_election(2020, "CA")%>%filter(party == "DEMOCRAT"), aes(geometry = geometry))+
+ggplot(data = house_data_CA%>%filter(party == "DEMOCRAT"), aes(geometry = geometry))+
   geom_sf(aes(fill=vote_prop))+
   labs(fill = "Percent of the vote the\nDemocratic candidate recieved", title = "2012 U.S. House of Representatives Results")+
   scale_fill_gradient2(low="red", midpoint = 0.5, high="blue")+
   theme_minimal()
 
 
-data <- read.csv("countypres_2000-2020.csv")
+data <- read.csv("./data/countypres_2000-2020.csv")
 extract_election_pres <- function(year_input, state_input){
   library(tidyverse)
   library(stringr)
@@ -71,17 +67,6 @@ extract_election_pres <- function(year_input, state_input){
   return(data)
 }
 
-test <- extract_election_pres(2000, "CA")
+pres_data_CA <- extract_election_pres(2010, "CA")
 
 
-list <- reactive({
-  
-  all_data <- plot_function(as.numeric(input$year), input$state)
-  
-  pollution <- all_data[[2]]%>%filter(pollutant == input$pollutant)
-  election <- all_data[[3]]%>%filter(party == input$party)
-
-  return(list())
-})
-
-df1 <- list[[1]]
