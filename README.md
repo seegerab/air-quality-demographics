@@ -22,6 +22,9 @@ DBeaver will be used to build a database that combines all of the cleaned data f
 
 Finally, R Shiny is used to create an app that will plot the demographic, air quality, and election data in a choropleth. A fourth function was made to create an interactive plot for the R Shiny app. We will refer to this function as the **plot function**. The plot function will take in year, state, email address, and EPA API key. The plot function includes the population function, EPA function, and the election function. The plot function extracts geometry data from the population function then joins the geometry data with EPA pollution data and election data by county. Finally, the plot function outputs the population data, EPA pollution data, and election data as a list.
 
+The Shiny app can be accessed at this link: https://dmxjfw-marley-lund.shinyapps.io/air-quality-demographics-project/
+
+
 The dplyr package in R is used to extract the data from each API and to clean the data.
 
 The OutdatedFunctions folder contains older version of the scripts contained in the src folder. They are not necessary for the Shiny app or our final deliverable, though are included to show our code progress. 
